@@ -334,3 +334,14 @@
 - `-qscale[:stream_specifier] q (output,per-stream)`
 	
 	使用固定的质量品质(VBR)。用于指定`q|qscale`编码依赖。如果`qscale`没有跟`stream_specifier`则只适用于视频。其中值`q`取值在0.01-255,越小质量越好。
+-  `-filter[:stream_specifier] filtergraph (output,per-stream)`:创建一个由`filtergraph`指定的滤镜，并应用于指定流。
+	
+	`filtergraph`是应用于流的滤镜链图，它必须有一个输入和输出，而且流的类型需要相同。在滤镜链图中，从`in`标签指定出输入，从`out`标签出输出。要了解更多语法，请参考`ffmpeg－filters`手册。
+	
+	参考`－filter_complex`选项以了解如何建立多个输入／输出的滤镜链图。
+	
+- `－filter_script［：stream_specifier］ filename （output，per－stream）`：这个选项类似于`－filter`，只是这里的参数是一个文件名，它的内容将被读取用于构建滤镜链图。
+
+－`－pre［：stream_specifier］ preset_name （output，per－stream）`：指定预设名字的流（单个或者多个）。
+
+－ `－stats （global）`：输出编码过程／统计，这是系统默认值，如果你想禁止，则需要采用`－nostats`。
