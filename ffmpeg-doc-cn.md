@@ -345,3 +345,4 @@
 －`－pre［：stream_specifier］ preset_name （output，per－stream）`：指定预设名字的流（单个或者多个）。
 
 － `－stats （global）`：输出编码过程／统计，这是系统默认值，如果你想禁止，则需要采用`－nostats`。
+－ `－progress url （global）`：
