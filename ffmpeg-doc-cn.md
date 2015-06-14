@@ -363,6 +363,6 @@
 	ffmpeg -dump_attachment:t "" -i INPUT
 
 	技术说明：附件流是作为编码扩展数据来工作的，所以其他流数据也能展开，而不仅仅是这个附件属性。
-- `-noautorotate`：禁止自动数据不正确的奇怪东西。
+- `-noautorotate`：禁止自动数据不正确的输出，应用奇怪东西。
 
 ### 视频（video）选项 ###
