@@ -342,7 +342,27 @@
 	
 - `－filter_script［：stream_specifier］ filename （output，per－stream）`：这个选项类似于`－filter`，只是这里的参数是一个文件名，它的内容将被读取用于构建滤镜链图。
 
-－`－pre［：stream_specifier］ preset_name （output，per－stream）`：指定预设名字的流（单个或者多个）。
+- `－pre［：stream_specifier］ preset_name （output，per－stream）`：指定预设名字的流（单个或者多个）。
 
-－ `－stats （global）`：输出编码过程／统计，这是系统默认值，如果你想禁止，则需要采用`－nostats`。
-－ `－progress url （global）`：
+- `－stats （global）`：输出编码过程／统计，这是系统默认值，如果你想禁止，则需要采用`－nostats`。
+- `－progress url （global）`：发送友好的处理过程信息到`url`。处理过程信息是一种键值对（key=value）序列信息，它每秒都输出，或者在一次编码结束时输出。信息中最后的一个键值对表明了当前处理进度。
+- `-stdin`:允许标准输入作为交互。在默认情况下除非标准输入作为真正的输入。要禁用标准输入交互，则你需要显式的使用`-nostdin`进行设置。禁用标准输入作为交互作用是有用的，例如FFmpeg是后台进程组，它需要一些相同的从shell开始的调用（`ffmpeg ... </dev/null`）。
+- `-debug_ts (global)`：打印时间码信息，默认是禁止的。这个选项对于测试或者调试是非常有用的特性，或者用于从一种格式切换到另外的格式（包括特性）的时间成本分析，所以不用于脚本处理中。还可以参考`-fdebug ts`选项。
+- `-attach filename (output)`：把一个文件附加到输出文件中。这里只有很少文件类型能被支持，例如使用Matroska技术为了渲染字幕的字体文件。附件作为一种特殊的流类型，所以这个选项会添加一个流到文件中，然后你就可以像操作其他流一样使用每种流选项。在应用本选项时，附件流须作为最后一个流(例如根据`-map`映射流或者自动映射时需要注意)。**注意**对于`Matroska`你也可以在元数据标签中进行类型设定：
+>
+	ffmpeg -i INPUT -attach DejaVuSans.ttf -metadata:s:2 mimetype=application/x-truetype-font out.mkv
+
+(这时要访问到附件流，则就是访问输出文件中的第3个流)
+
+- `-dump_attachment[:stream_specifier] filename （input,per-stream）`：从输入文件中解出指定的附件流到文件filename：
+>
+	ffmpeg -dump_attachment:t:0 out.ttf -i INPUT
+
+	如果想一次性把所有附件都解出来，则
+>
+	ffmpeg -dump_attachment:t "" -i INPUT
+
+	技术说明：附件流是作为编码扩展数据来工作的，所以其他流数据也能展开，而不仅仅是这个附件属性。
+- `-noautorotate`：禁止自动数据不正确的奇怪东西。
+
+### 视频（video）选项 ###
