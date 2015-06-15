@@ -363,6 +363,33 @@
 	ffmpeg -dump_attachment:t "" -i INPUT
 
 	技术说明：附件流是作为编码扩展数据来工作的，所以其他流数据也能展开，而不仅仅是这个附件属性。
-- `-noautorotate`：禁止自动数据不正确的奇怪东西。
+- `-noautorotate`：禁止自动依据文件元数据旋转视频。
 
 ### 视频（video）选项 ###
+- `-vframes number (output)`：设置输出文件的帧数，是`-frames:v`的别名。
+- `-r[:stream_specifier] fps (input/output,per-stream)`：设置帧率（一种Hz值，缩写或者分数值）。
+	 
+	在作为输入选项时，会忽略文件中存储的时间戳和时间戳而产生的假设恒定帧率`fps`，即强制按设定帧率处理视频产生（快进/减缓效果）。这不像`-framerate`选项是用来让一些输入文件格式如image2或者v412(兼容旧版本的FFmpeg)等，要注意这一点区别，而不要造成混淆。
+	
+	作为输出选项时，会复制或者丢弃输入中个别的帧以满足设定达到`fps`要求的帧率。
+- `-s[:stream_specifier] size (input/output,per-stream)`：设置帧的尺寸。
+
+	当作为输入选项时，是私有选项`video_size`的缩写，一些文件没有把帧尺寸进行存储，或者设备对帧尺寸是可以设置的，例如一些采集卡或者raw视频数据。
+
+	当作为输出选项是，则相当于`scale`滤镜作用在滤镜链图的最后。请使用`scale`滤镜插入到开始或者其他地方。
+
+	数据的格式是`wxh`，即`宽度值X高度值`，例如`320x240`，（默认同源尺寸）
+- `aspect[:stream_specifier] aspect (output,per-stream)`：指定视频的纵横比（长宽显示比例）。`aspect`是一个浮点数字符串或者`num:den`格式字符串(其值就是num/den)，例如"4:3","16:9","1.3333"以及"1.7777"都是常用参数值。
+
+	如果还同时使用了`-vcodec copy`选项，它将只影响容器级的长宽比，而不是存储在编码中的帧纵横比。
+
+- `-vn (output)`：禁止输出视频
+- `-vcodec codec (output)`：设置视频编码器，这是`-codec:v`的一个别名。
+- `-pass[:stream_specifier] n (output,per-stream)`:选择当前编码数(1或者2)，它通常用于2次视频编码的场景。第一次编码通常把分析统计数据记录到1个日志文件中（参考`-passlogfile`选项），然后在第二次编码时读取分析以精确要求码率。在第一次编码时通常可以禁止音频，并且把输出文件设置为`null`，在windows和类unix分别是:
+> 
+	ffmpeg -i foo.mov -c:v libxvid -pass 1 -an -f rawvideo -y NUL
+	ffmpeg -i foo.mov -c:v libxvid -pass 1 -an -f rawvideo -y /dev/null
+
+- `-passlogfile[:stream_specifier] prefix (output,per-stream)`：设置2次编码模式下日志文件存储文件前导，默认是"ffmepg2pass"，则完整的文件名就是"PREFIX-N.log"，其中的N是指定的输出流序号（对多流输出情况）
+- `-vf filtergraph (output)`：创建一个`filtergraph`的滤镜链并作用在流上。它实为`-filter:v`的别名，详细参考`-filter`选项。
+### 高级视频选项 ###
