@@ -393,3 +393,59 @@
 - `-passlogfile[:stream_specifier] prefix (output,per-stream)`：设置2次编码模式下日志文件存储文件前导，默认是"ffmepg2pass"，则完整的文件名就是"PREFIX-N.log"，其中的N是指定的输出流序号（对多流输出情况）
 - `-vf filtergraph (output)`：创建一个`filtergraph`的滤镜链并作用在流上。它实为`-filter:v`的别名，详细参考`-filter`选项。
 ### 高级视频选项 ###
+- `-pix_fmt[:stream_specifier] format (input/output,per-stream)`：设置像素格式。使用`-pix_fmts`可以显示所有支持的像素格式。如果设置的像素格式不能被选中（启用），则ffmpeg会输出一个警告和并选择这个编码最好（兼容）的像素格式。如果`pix_fmt`前面前导了一个`+`字符，ffmepg会在要求的像素格式不被支持时退出，这也意味着滤镜中的自动转换也会被禁止。如果`pix_fmt`是单独的`+`，则ffmpeg选择和输入（或者滤镜通道）一样的像素格式作为输出，这时自动转换也会被禁止。
+- `-sws_flags flags (input/output)`:选择`SwScaler`放缩标志量。
+- `-vdt n`：丢弃的门限设置。
+- `-rc_override[:stream_specifier] override (output,per-stream)`:在特定时间范围内的间隔覆盖率，`override`的格式是"int\int\int"。其中前两个数字是开始帧和结束帧，最后一个数字如果为正则是量化模式，如果为负则是品质因素。
+- `-ilme`：支持交错编码（仅MPEG-2和MPEG-4）。如果你的输入是交错的，而且你想保持交错格式，又想减少质量损失，则选此项。另一种方法是采用`-deinterlace`对输入流进行分离，但会引入更多的质量损失。
+- `-psnr`：计算压缩帧的`PSNR`
+- `-vstats`：复制视频编码统计分析到日志文件`vstats_HHMMSS.log`
+- `-vstats_file file`:复制视频编码统计分析到`file`所指的日志文件中。
+- `-top[:stream_specifier] n (output,per-stream)`: 指明视频帧数据描述的起点。`顶部=1/底部=0/自动=-1`（以往CRT电视扫描线模式）
+- `-dc precision`：Intra_dc_precision值。
+- `-vtag fourcc/tag (output)`:是`-tag:v`的别名，强制指定视频标签/fourCC （FourCC全称Four-Character Codes，代表四字符代码 (four character code), 它是一个32位的标示符，其实就是typedef unsigned int FOURCC;是一种独立标示视频数据流格式的四字符代码。）
+- `-qphist (global)`：显示`QP`直方图。
+- `-vbsf bitstream_filter`：参考`-bsf`以进一步了解。
+- `-force_key_frames[:stream_specifier] time[,time...] (output,per-stream)` ：（见下）
+- `-force_key_frames[:stream_specifier] expr:expr (output,per-stream)`：强制时间戳位置帧为关键帧，更确切说是从第一帧起每设置时间都是关键帧（即强制关键帧率）。
+
+	如果参数值是以`expr:`前导的，则字符串`expr`为一个表达式用于计算关键帧间隔数。关键帧间隔值必须是一个非零数值。
+
+	如果一个时间值是"`chapters` [delta]"则表示文件中从`delta`章开始的所有章节点计算以秒为单位的时间，并把该时间所指帧强制为关键帧。这个选项常用于确保输出文件中所有章标记点或者其他点所指帧都是关键帧（这样可以方便定位）。例如下面的选项代码就可以使“第5分钟以及章节chapters-0.1开始的所有标记点都成为关键帧”：	
+> 
+	-force_key_frames 0:05:00,chapters-0.1
+
+	其中表达式`expr`接受如下的内容：
+	- `n`：当前帧序数，从0开始计数
+	- `n_forced`：强制关键帧数
+	- `prev_forced_n`：之前强制关键帧数，如果之前还没有强制关键帧，则其值为`NAN`
+	- `prev_forced_t`：之前强制关键帧时间，如果之前还没有强制关键帧则为`NAN`
+	- `t`：当前处理到的帧对应时间。
+	
+	例如要强制每5秒一个关键帧：
+> 
+	-force_key_frames expr:gte(t,n_forced*5)
+	
+	从13秒后每5秒一个关键帧：
+> 
+	-force_key_frames expr:if(isnan(prev_forced_t),gte(t,13),gte(t,prev_forced_t+5))
+
+	**注意**设置太多强制关键帧会损害编码器前瞻算法效率，采用固定`GOP`选项或采用一些近似设置可能更高效。
+
+- `-copyinkf[:stream_specifier] (output,per-stream)`:流复制时同时复制非关键帧。
+- `-hwaccel[:stream_specifier] hwaccel (input,per-stream)`：使用硬件加速解码匹配的流。允许的`hwaccel`值为：
+	- `none`：没有硬件加速（默认值）
+	- `auto`：自动选择硬件加速
+	- `vda`：使用Apple的VDA硬件加速
+	- `vdpau`：使用VDPAU（Video Decode and Presentation API for Unix，类unix下的技术标准）硬件加速
+	- `dxva2`：使用DXVA2 (DirectX Video Acceleration，windows下的技术标准) 硬件加速。
+
+	这个选项可能并不能起效果（它依赖于硬件设备支持和选择的解码器支持）
+
+	**注意**：很多加速方法（设备）现在并不比现代CPU快了，而且额外的`ffmpeg`需要拷贝解码的帧（从GPU内存到系统内存）完成后续处理（例如写入文件），从而造成进一步的性能损失。所以当前这个选项更多的用于测试。
+
+- `-hwaccel_device:[:stream_specifier] hwaccel_device (input,per-stream)`：选择一个设备用于硬件解码加速。这个选项必须同时指定了`-hwaccel`才可能生效。它也依赖于指定的设备对于特定编码的解码加速支持性能。
+	- `vdpau`：对应于`VDPAU`，在`X11`（类Unix）显示/屏幕 上的，如果这个选项值没有选中，则必须在`DISPLAY`环境变量中有设置。
+	- `dxva2`：对应于`DXVA2`，这个是显示硬件（卡）的设备号，如果没有指明，则采用默认设备（对于多个卡时）。
+
+### 音频选项 ###
