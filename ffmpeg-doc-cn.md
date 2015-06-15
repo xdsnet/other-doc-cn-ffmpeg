@@ -457,3 +457,8 @@
 - `-acode codec (input/output)`：设置音频解码/编码的编/解码器，是`-codec:a`的别名
 - `-sample_fmt[:stream_specifier] sample_fmt (output,per-stream)`:设置音频样例格式。使用`-sample_fmts`可以获取所有支持的样例格式。
 - `-af filtergraph (output)`：对音频使用`filtergraph`滤镜效果，其是`-filter:a`的别名，参考`-filter`选项。
+### 高级音频选项 ###
+- `-atag fourcc/tag (output)`：强制音频标签/fourcc。这个是`-tag:a`的别名。
+- `-absf bitstream_filter`：要深入了解参考`-bsf`
+- `-guess_layout_max channels (input,per-stream)`:如果音频输入通道的布局不确定，则尝试猜测选择一个能包括所有指定通道的布局。例如：通道数是2，则`ffmpeg`可以认为是2个单声道，或者1个立体声声道而不会认为是6通道或者5.1通道模式。默认值是总是试图猜测一个包含所有通道的布局，用0来禁用。
+### 字幕选项 ###
