@@ -449,3 +449,11 @@
 	- `dxva2`：对应于`DXVA2`，这个是显示硬件（卡）的设备号，如果没有指明，则采用默认设备（对于多个卡时）。
 
 ### 音频选项 ###
+- `-aframes number (output)`：设置`number`音频帧输出，是`-frames:a`的别名
+- `-ar[:stream_specifier] freq (input/output,per-stream)`:设置音频采样率。默认是输出同于输入。对于输入进行设置，仅仅通道是真实的设备或者raw数据分离出并映射的通道才有效。对于输出则可以强制设置音频量化的采用率。
+- `-aq q (output)`：设置音频品质(编码指定为VBR)，它是`-q:a`的别名。
+- `-ac[:stream_specifier] channels (input/output,per-stream)`：设置音频通道数。默认输出会有输入相同的音频通道。对于输入进行设置，仅仅通道是真实的设备或者raw数据分离出并映射的通道才有效。
+- `-an (output)`：禁止输出音频
+- `-acode codec (input/output)`：设置音频解码/编码的编/解码器，是`-codec:a`的别名
+- `-sample_fmt[:stream_specifier] sample_fmt (output,per-stream)`:设置音频样例格式。使用`-sample_fmts`可以获取所有支持的样例格式。
+- `-af filtergraph (output)`：对音频使用`filtergraph`滤镜效果，其是`-filter:a`的别名，参考`-filter`选项。
