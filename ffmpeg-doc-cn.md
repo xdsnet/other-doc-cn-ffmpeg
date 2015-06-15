@@ -363,6 +363,261 @@
 	ffmpeg -dump_attachment:t "" -i INPUT
 
 	技术说明：附件流是作为编码扩展数据来工作的，所以其他流数据也能展开，而不仅仅是这个附件属性。
+<<<<<<< HEAD
 - `-noautorotate`：禁止自动数据不正确的输出，应用奇怪东西。
+=======
+- `-noautorotate`：禁止自动依据文件元数据旋转视频。
+>>>>>>> origin/master
 
 ### 视频（video）选项 ###
+- `-vframes number (output)`：设置输出文件的帧数，是`-frames:v`的别名。
+- `-r[:stream_specifier] fps (input/output,per-stream)`：设置帧率（一种Hz值，缩写或者分数值）。
+	 
+	在作为输入选项时，会忽略文件中存储的时间戳和时间戳而产生的假设恒定帧率`fps`，即强制按设定帧率处理视频产生（快进/减缓效果）。这不像`-framerate`选项是用来让一些输入文件格式如image2或者v412(兼容旧版本的FFmpeg)等，要注意这一点区别，而不要造成混淆。
+	
+	作为输出选项时，会复制或者丢弃输入中个别的帧以满足设定达到`fps`要求的帧率。
+- `-s[:stream_specifier] size (input/output,per-stream)`：设置帧的尺寸。
+
+	当作为输入选项时，是私有选项`video_size`的缩写，一些文件没有把帧尺寸进行存储，或者设备对帧尺寸是可以设置的，例如一些采集卡或者raw视频数据。
+
+	当作为输出选项是，则相当于`scale`滤镜作用在滤镜链图的最后。请使用`scale`滤镜插入到开始或者其他地方。
+
+	数据的格式是`wxh`，即`宽度值X高度值`，例如`320x240`，（默认同源尺寸）
+- `aspect[:stream_specifier] aspect (output,per-stream)`：指定视频的纵横比（长宽显示比例）。`aspect`是一个浮点数字符串或者`num:den`格式字符串(其值就是num/den)，例如"4:3","16:9","1.3333"以及"1.7777"都是常用参数值。
+
+	如果还同时使用了`-vcodec copy`选项，它将只影响容器级的长宽比，而不是存储在编码中的帧纵横比。
+
+- `-vn (output)`：禁止输出视频
+- `-vcodec codec (output)`：设置视频编码器，这是`-codec:v`的一个别名。
+- `-pass[:stream_specifier] n (output,per-stream)`:选择当前编码数(1或者2)，它通常用于2次视频编码的场景。第一次编码通常把分析统计数据记录到1个日志文件中（参考`-passlogfile`选项），然后在第二次编码时读取分析以精确要求码率。在第一次编码时通常可以禁止音频，并且把输出文件设置为`null`，在windows和类unix分别是:
+> 
+	ffmpeg -i foo.mov -c:v libxvid -pass 1 -an -f rawvideo -y NUL
+	ffmpeg -i foo.mov -c:v libxvid -pass 1 -an -f rawvideo -y /dev/null
+
+- `-passlogfile[:stream_specifier] prefix (output,per-stream)`：设置2次编码模式下日志文件存储文件前导，默认是"ffmepg2pass"，则完整的文件名就是"PREFIX-N.log"，其中的N是指定的输出流序号（对多流输出情况）
+- `-vf filtergraph (output)`：创建一个`filtergraph`的滤镜链并作用在流上。它实为`-filter:v`的别名，详细参考`-filter`选项。
+### 高级视频选项 ###
+- `-pix_fmt[:stream_specifier] format (input/output,per-stream)`：设置像素格式。使用`-pix_fmts`可以显示所有支持的像素格式。如果设置的像素格式不能被选中（启用），则ffmpeg会输出一个警告和并选择这个编码最好（兼容）的像素格式。如果`pix_fmt`前面前导了一个`+`字符，ffmepg会在要求的像素格式不被支持时退出，这也意味着滤镜中的自动转换也会被禁止。如果`pix_fmt`是单独的`+`，则ffmpeg选择和输入（或者滤镜通道）一样的像素格式作为输出，这时自动转换也会被禁止。
+- `-sws_flags flags (input/output)`:选择`SwScaler`放缩标志量。
+- `-vdt n`：丢弃的门限设置。
+- `-rc_override[:stream_specifier] override (output,per-stream)`:在特定时间范围内的间隔覆盖率，`override`的格式是"int\int\int"。其中前两个数字是开始帧和结束帧，最后一个数字如果为正则是量化模式，如果为负则是品质因素。
+- `-ilme`：支持交错编码（仅MPEG-2和MPEG-4）。如果你的输入是交错的，而且你想保持交错格式，又想减少质量损失，则选此项。另一种方法是采用`-deinterlace`对输入流进行分离，但会引入更多的质量损失。
+- `-psnr`：计算压缩帧的`PSNR`
+- `-vstats`：复制视频编码统计分析到日志文件`vstats_HHMMSS.log`
+- `-vstats_file file`:复制视频编码统计分析到`file`所指的日志文件中。
+- `-top[:stream_specifier] n (output,per-stream)`: 指明视频帧数据描述的起点。`顶部=1/底部=0/自动=-1`（以往CRT电视扫描线模式）
+- `-dc precision`：Intra_dc_precision值。
+- `-vtag fourcc/tag (output)`:是`-tag:v`的别名，强制指定视频标签/fourCC （FourCC全称Four-Character Codes，代表四字符代码 (four character code), 它是一个32位的标示符，其实就是typedef unsigned int FOURCC;是一种独立标示视频数据流格式的四字符代码。）
+- `-qphist (global)`：显示`QP`直方图。
+- `-vbsf bitstream_filter`：参考`-bsf`以进一步了解。
+- `-force_key_frames[:stream_specifier] time[,time...] (output,per-stream)` ：（见下）
+- `-force_key_frames[:stream_specifier] expr:expr (output,per-stream)`：强制时间戳位置帧为关键帧，更确切说是从第一帧起每设置时间都是关键帧（即强制关键帧率）。
+
+	如果参数值是以`expr:`前导的，则字符串`expr`为一个表达式用于计算关键帧间隔数。关键帧间隔值必须是一个非零数值。
+
+	如果一个时间值是"`chapters` [delta]"则表示文件中从`delta`章开始的所有章节点计算以秒为单位的时间，并把该时间所指帧强制为关键帧。这个选项常用于确保输出文件中所有章标记点或者其他点所指帧都是关键帧（这样可以方便定位）。例如下面的选项代码就可以使“第5分钟以及章节chapters-0.1开始的所有标记点都成为关键帧”：	
+> 
+	-force_key_frames 0:05:00,chapters-0.1
+
+	其中表达式`expr`接受如下的内容：
+	- `n`：当前帧序数，从0开始计数
+	- `n_forced`：强制关键帧数
+	- `prev_forced_n`：之前强制关键帧数，如果之前还没有强制关键帧，则其值为`NAN`
+	- `prev_forced_t`：之前强制关键帧时间，如果之前还没有强制关键帧则为`NAN`
+	- `t`：当前处理到的帧对应时间。
+	
+	例如要强制每5秒一个关键帧：
+> 
+	-force_key_frames expr:gte(t,n_forced*5)
+	
+	从13秒后每5秒一个关键帧：
+> 
+	-force_key_frames expr:if(isnan(prev_forced_t),gte(t,13),gte(t,prev_forced_t+5))
+
+	**注意**设置太多强制关键帧会损害编码器前瞻算法效率，采用固定`GOP`选项或采用一些近似设置可能更高效。
+
+- `-copyinkf[:stream_specifier] (output,per-stream)`:流复制时同时复制非关键帧。
+- `-hwaccel[:stream_specifier] hwaccel (input,per-stream)`：使用硬件加速解码匹配的流。允许的`hwaccel`值为：
+	- `none`：没有硬件加速（默认值）
+	- `auto`：自动选择硬件加速
+	- `vda`：使用Apple的VDA硬件加速
+	- `vdpau`：使用VDPAU（Video Decode and Presentation API for Unix，类unix下的技术标准）硬件加速
+	- `dxva2`：使用DXVA2 (DirectX Video Acceleration，windows下的技术标准) 硬件加速。
+
+	这个选项可能并不能起效果（它依赖于硬件设备支持和选择的解码器支持）
+
+	**注意**：很多加速方法（设备）现在并不比现代CPU快了，而且额外的`ffmpeg`需要拷贝解码的帧（从GPU内存到系统内存）完成后续处理（例如写入文件），从而造成进一步的性能损失。所以当前这个选项更多的用于测试。
+
+- `-hwaccel_device:[:stream_specifier] hwaccel_device (input,per-stream)`：选择一个设备用于硬件解码加速。这个选项必须同时指定了`-hwaccel`才可能生效。它也依赖于指定的设备对于特定编码的解码加速支持性能。
+	- `vdpau`：对应于`VDPAU`，在`X11`（类Unix）显示/屏幕 上的，如果这个选项值没有选中，则必须在`DISPLAY`环境变量中有设置。
+	- `dxva2`：对应于`DXVA2`，这个是显示硬件（卡）的设备号，如果没有指明，则采用默认设备（对于多个卡时）。
+
+### 音频选项 ###
+- `-aframes number (output)`：设置`number`音频帧输出，是`-frames:a`的别名
+- `-ar[:stream_specifier] freq (input/output,per-stream)`:设置音频采样率。默认是输出同于输入。对于输入进行设置，仅仅通道是真实的设备或者raw数据分离出并映射的通道才有效。对于输出则可以强制设置音频量化的采用率。
+- `-aq q (output)`：设置音频品质(编码指定为VBR)，它是`-q:a`的别名。
+- `-ac[:stream_specifier] channels (input/output,per-stream)`：设置音频通道数。默认输出会有输入相同的音频通道。对于输入进行设置，仅仅通道是真实的设备或者raw数据分离出并映射的通道才有效。
+- `-an (output)`：禁止输出音频
+- `-acode codec (input/output)`：设置音频解码/编码的编/解码器，是`-codec:a`的别名
+- `-sample_fmt[:stream_specifier] sample_fmt (output,per-stream)`:设置音频样例格式。使用`-sample_fmts`可以获取所有支持的样例格式。
+- `-af filtergraph (output)`：对音频使用`filtergraph`滤镜效果，其是`-filter:a`的别名，参考`-filter`选项。
+### 高级音频选项 ###
+- `-atag fourcc/tag (output)`：强制音频标签/fourcc。这个是`-tag:a`的别名。
+- `-absf bitstream_filter`：要深入了解参考`-bsf`
+- `-guess_layout_max channels (input,per-stream)`:如果音频输入通道的布局不确定，则尝试猜测选择一个能包括所有指定通道的布局。例如：通道数是2，则`ffmpeg`可以认为是2个单声道，或者1个立体声声道而不会认为是6通道或者5.1通道模式。默认值是总是试图猜测一个包含所有通道的布局，用0来禁用。
+### 字幕选项 ###
+- `-scodec codec （input/output）`：设置字幕解码器，是`-codec:s`的别名。
+- `-sn (output)`：禁止输出字幕
+- `-sbsf bitstream_filter`：深入了解请参考`-bsf`
+### 高级字幕选项 ###
+- `-fix_sub_duration`：修正字幕持续时间。对每个字幕根据接下来的数据包调整字幕流的时间常数以防止相互覆盖（第一个没有完下一个就出来了）。这对很多字幕解码来说是必须的，特别是DVB字幕，因为它在原始数据包中只记录了一个粗略的估计值，最后还以一个空的字幕帧结束。  
+	
+	这个选项可能失败，或者出现夸张的持续时间或者合成失败，这是因为数据中有非单调递增的时间戳。
+
+	**注意**此选项将导致所有数据延迟输出到字幕解码器，它会增加内存消耗，并引起大量延迟。
+
+- `-canvas_size size`：设置字幕渲染区域的尺寸（位置）
+### 高级选项 ###
+- `-map [-]input_file_id[:stream_specifier][,sync_file_id[:stream_specifier]] | [linklabel] (output)`：设定一个或者多个输入流作为输出流的源。每个输入流是以`input_file_id`序数标记的输入文件和`input_stream_id`标记的流序号共同作用指明，它们都以0起始计数。如果设置了`sync_file_id:stream_specifier`，则把这个输入流作为同步信号参考。
+
+	命令行中的第一个`-map`选项指定了输出文件中第一个流的映射规则（编号为0的流，0号流），第二个则指定1号流的，以此类推。
+
+	如果在流限定符前面有一个`-`标记则表明创建一个“负”映射，这意味着禁止该流输出，及排除该流。
+
+	一种替代的形式是在复合滤镜中利用`[linklabel]`来进行映射（参看`-filter_complex`选项）。其中的`linklabel`必须是输出滤镜链图中已命名的标签。
+
+	例子：映射第一个输入文件的所有流到输出文件：
+> 
+	ffmpeg -i INPUT -map 0 output
+
+	又如，如果在输入文件中有两路音频流，则这些流的标签就是"0:0"和"0:1"，你可以使用`-map`来选择某个输出，例如：
+>
+	ffmpeg -i INPUT -map 0:1 out.wav
+
+	这将只把输入文件中流标签为"0:1"的音频流单独输出到out.wav中。
+
+	再如，从文件a.mov中选择序号为2的流（流标签0:2），以及从b.mov中选择序号为6的流(流标签1:6)，然后共同复制输出到out.mov需要如下写:
+>
+	ffmpeg -i a.mov -i b.mov -c copy -map 0:2 -map 1:6 out.mov
+
+	选择所有的视频和第三个音频流则是:
+>
+	ffmpeg -i INPUT -map 0:v -map:a:2 OUTPUT
+
+	选择所有的流除了第二音频流外的流进行输出是：
+>
+	ffmpeg -i INPUT -map 0 -map -0:a:1 OUTPUT
+	
+	选择输出英语音频流:
+>
+	ffmpeg -i INPUT -map 0:m:language:eng OUTPUT
+
+	**注意**应用了该选项将自动禁用默认的映射。
+- `-ignore_unknown`：如果流的类型未知则忽略，而不进行复制。
+- `-copy_unknown`：复制类型未知的流。
+- `-map_channel [input_file_id.stream_specifier.channel_id|-1][:output_file_id.stream_specifier]`:从输入文件中指定映射一个通道的音频到输出文件指定流。如果`output_file_id.stream_specifier`没有设置，则音频通道将映射到输出文件的所有音频流中。
+
+	使用`-1`插入到`input_file_id.stream_specifier.chnnel_id`会映射一个静音通道
+
+	例如`INPUT`是一个立体声音频文件，你可以分别选择两个音频通道(下面实际上对于输入是交换了2个音频通道顺序进行输出)：
+>
+	ffmpeg -i INPUT -map_channel 0.0.1 -map_channel 0.0.0 OUTPUT
+
+	如果你想静音第一个通道，而只保留第二通道，则可使用:
+>
+	ffmpeg -i INPUT -map_channel -1 -map_channel 0.0.1 OUTPUT
+
+	以`-map_channel`选项指定的顺序在输出文件中输出音频流通道布局，即第一个`-map_channel`对应输出中第一个音频流通道，第二个对应第二个音频流通道，以此类推（只有一个则是单声道，2个是立体声）。联合使用`-ac`与`-map_channel`，而且在输入的`-map_channel`与`-ac`不匹配（例如只有2个`-map_channel`，又设置了`-ac 6`）时将使指定音频流通道提高增益。
+
+	你可以详细的对每个输入通道指派输出以分离整个输入文件，例如下面就把有`INPUT`文件中的两个音频分别输出到两个输出文件中(OUTPUT_CH0 和 OUTPUT_CH1 )：
+>
+	ffmpeg -i INPUT -map_channel 0.0.0 OUTPUT_CH0 -map_channel 0.0.1 OUTPUT_CH1
+
+	下面的例子则把一个立体声音频的两个音频通道分离输出到两个相互独立的流（相当于两个单声道了）中（但还是放置在同一个输出文件中）:
+>
+	ffmpeg -i stereo.wav -map 0:0 -map 0:0 -map_channel 0.0.0:0.0 -map_channel 0.0.1:0.1 -y out.ogg
+
+	**注意**当前一个输出流仅能与一个输入通道连接，既你不能实现利用`-map_channel`把多个输入的音频通道整合到不同的流中（从同一个文件或者不同文件）或者是混合它们成为单独的流，例如整合2个单声道形成立体声是不可能的。但是分离一个立体声成为2个独立的单声道是可行的。
+
+	如果你需要类似的应用，你需要使用`amerge`滤镜，例如你需要整合一个媒体（这里是input.mkv）中的2个单声道成为一个立体声通道(保持视频流不变)，你需要采用下面的命令:
+>
+	ffmpeg -i input.mkv -filter_complex "[0:1] [0:2] amerge" -c:a pcm_s16le -c:v copy output.mkv
+
+- `-map_metadata[:metadata_spec_out] infile[:metadata_spec_in] (output,per-metadata)`：在下一个输出文件中从`infile`读取输出元数据信息。**注意**这里的文件索引也是以0开始计数的，而不是文件名。参数`metadata_spec_in/out`指定的元数据将被复制，一个元数据描述可以有如下的信息块:
+	- `g`:全局元数据，这些元数据将作用于整个文件
+	- `s[:stream_spec]`:每个流的元数据，`steam_spec`的介绍在`流指定`章节。如果是描述输入流，则第一个被匹配的流相关内容被复制，如果是输出元数据指定，则所有匹配的流相关信息被复制到该处。
+	- `c:chapter_index`:每个章节的元数据，`chapter_index`也是以0开始的章节索引。
+	- `p:program_index`：每个节目元数据，`program_index`是以0开始的节目索引
+	
+	如果元数据指定被省略，则默认是全局的。
+
+	默认全局元数据会从第一个输入文件每个流每个章节依次复制（流/章节），这种默认映射会因为显式创建了任意的映射而失效。一个负的文件索引就可以禁用默认的自动复制。
+	
+	例如从输入文件的第一个流复制一些元数据作为输出的全局元数据
+>
+	ffmpeg -i in.ogg -map_metadata 0:s:0 out.mp3
+
+	与上相反的操作，例如复制全局元数据给所有的音频流
+>
+	ffmpeg -i in.mkv -map_metadata:s:a 0:g out.mkv
+
+	**注意**这里简单的`0`在这里能正常工作是因为全局元数据是默认访问的。
+- `-map_chapters input_file_index (output)`:从输入文件中复制由`input_file_index`指定的章节的内容到输出。如果没有匹配的章节，则复制第一个输入文件至少一章内容（第一章）。使用负数索引则禁用所有的复制。
+- `-benchmark (global)`：在编码结束后显示基准信息。则包括CPU使用时间和最大内存消耗，最大内存消耗是不一定在所有的系统中被支持，它通常以显示为0表示不支持。
+- `-benchmark_all (global)`:在编码过程中持续显示基准信息，则包括CPU使用时间（音频/视频 的 编/解码）
+- `-timelimit duration (global)`:ffmpeg在编码处理了`duration`秒后退出。
+- `-dump (global)`：复制每个输入包到标准输出设备
+- `-hex (global)`:复制包时也复制荷载信息
+- `-re (input)`：以指定帧率读取输入。通常用于模拟一个硬件设备，例如在直播输入流（这时是读取一个文件）。不应该在实际设备或者在直播输入中使用（因为这将导致数据包的丢弃）。默认`ffmpeg`会尽量以最高可能的帧率读取。这个选项可以降低从输入读取的帧率，这常用于实时输出（例如直播流）。
+- `-loop_input`：循环输入流。当前它仅作用于图片流。这个选项主要用于FFserver自动化测试。这个选项现在过时了，应该使用`-loop 1`。
+- `-loop_output number_of_times`：重复播放`number_of_times`次。这是对于GIF类型的动画（0表示持续重复而不停止）。这是一个过时的选项，用`-loop`替代。
+- `-vsync parameter`：视频同步方式。为了兼容旧，常被设置为一个数字值。也可以接受字符串来作为描述参数值，其中可能的值是:
+	- `0,passthrough`:每个帧都通过时间戳来同步（从解复用到混合）。
+	- `1，cfr`：帧将复制或者降速以精准达到所要求的恒定帧速率。
+	- `2，vfr`：个别帧通过他们的时间戳或者降速以防止2帧具有相同的时间戳
+	- `drop`：直接丢弃所有的时间戳，而是在混合器中基于设定的帧率产生新的时间戳。
+	- `-1，auto`：根据混合器功能在1或者2中选择，这是默认值。
+	
+	**注意**时间戳可以通过混合器进一步修改。例如`avoid_negative_ts`被设置时。
+
+	利用`-map`你可以选择一个流的时间戳作为凭据，它可以对任何视频或者音频 不改变或者重新同步持续流到这个凭据。
+- `-frame_drop_threshold parameter`：丢帧的阀值，它指定后面多少帧内可能有丢帧。在帧率计数时1.0是1帧，默认值是1.1。一个可能的用例是避免在混杂的时间戳或者需要增加精准时间戳的情况下确立丢帧率。
+- `-async samples_per_second`：音频同步方式。"拉伸/压缩"音频以匹配时间戳。参数是每秒最大可能的音频改变样本。`-async 1`是一种特殊情况指只有开始时校正，后续不再校正。
+	
+	**注意**时间戳还可以进一步被混合器修改。例如`avoid_negative_ts`选项被指定时
+
+	已不推荐这个选项，而是用`aresample`音频滤波器代替。
+- `-copyts`：不处理输入的时间戳，保持它们而不是尝试审核。特别是不会消除启动时间偏移值。
+
+	**注意**根据`vsync`同步选项或者特定的混合器处理流程（例如格式选项`avoid_negative_ts`被设置）输出时间戳会忽略匹配输入时间戳（即使这个选项被设置）
+- `-start_at_zero`：当使用`-copyts`,位移输入时间戳作为开始时间0.这意味着使用该选项，同时又设置了`-ss`，例如`-ss 50`则输出中会从50秒开始加入输入文件时间戳。
+- `-copytb mode`：指定当流复制时如何设置编码时间基准。`mode`参数是一个整数值，可以有如下可能：
+	- `1`表示使用分离器时间基准，从分离器中复制时间戳到编码中。复制可变帧率视频流时需要避免非单调递增的时间戳。
+	- `0`表示使用解码器时间基准，使用解码器中获取的时间戳作为输出编码基准。
+	- `-1`尝试自动选择，只要能产生一个正常的输出，这是默认值。
+- `-shortest (output)`：完成编码时最短输入端。
+- `-dts_delta_threshold`：时间不连续增量阀值。
+- `-muxdelay seconds (input)`：设置最大 解复用-解码 延迟。参数是秒数值。
+- `-maxpreload seconds (input)`：设置初始的 解复用-解码延迟，参数是秒数值。
+- 
+- `-streamid output-stream-index:new-value (output)`:强制把输出文件中序号为`output-stream-id`的流命名为`new-value`
+的值。这对应于这样的场景：在存在了多输出文件时需要把一个流分配给不同的值。例如设置0号流为33号流，1号流为36号流到一个mpegts格式输出文件中（这相当于对流建立链接/别名）：
+> 
+    ffmpeg -i infile -streamid 0:33 -streamid 1:36 out.ts
+- `-bsf[:stream_specifier] bitstream_filters (output,per-stream)`：为每个匹配流设置bit流滤镜。`bitstream_filters`是一个逗号分隔的bit流滤镜列表。可以使用`-bsfs`来获得当前可用的bit流滤镜。
+> 
+    ffmpeg -i h264.mp4 -c:v copy -bsf:v h264_mp4toannexb -an out.h264
+	ffmpeg -i file.mov -an -vn -bsf:s mov2textsub -c:s copy -f rawvideo sub.txt
+
+- `-tag[:stream_specifier codec_tag (input/output,per-stream`：为匹配的流设置标签/fourcc。
+- 
+- `-timecode hh:mm:ssSEDff`:指定时间码，这里`SEP`如果是`:`则减少时间码，如果是`;`或者`.`则可减少。
+> 
+	ffmpeg -i input.mpg -timecode 01:02:03.04 -r 30000/1001 -s ntsc output.mpg
+- `-filter_complex filtergraph (global)`：定义一个复合滤镜，可以有任意数量的输入/输出。最简单的滤镜链图至少有一个输入和一个输出，且需要相同类型。参考`-filter`以获取更多信息（更有价值）。`filtergraph`用来指定一个滤镜链图。关于`滤镜链图的语法`可以参考`ffmpeg-filters`相关章节。 其中输入链标签必须对应于一个输入流。filtergraph的具体描述可以使用`file_index:stream_specifier`语法（事实上这同于`-map`）。如果`stream_specifier`匹配到了一个多输出流，则第一个被使用。
+
+	第一个未命名将匹配链接到的第一个未使用的。也可以使用`-map`来把输出链接到指定位置上。未标记的输出会附件到第一个输出文件。**注意**这个选项-参数只能是`-lavfi`一第一时间作为源，而不是其它。例如：
+- ffmpeg -i video.mkv -i image.png -filter_complex '[0:v][1:v]overlay[out]' -map
+'[out]' out.mkv
+
+- ``
