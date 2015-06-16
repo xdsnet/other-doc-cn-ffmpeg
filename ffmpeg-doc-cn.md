@@ -1052,6 +1052,7 @@ ffmpeg源码中的工具`tools/ffescape`被用于自动处理引用和转义。
 - ‘WhiteSmoke’    0xF5F5F5 
 - ‘Yellow’    0xFFFF00 
 - ‘YellowGreen’    0x9ACD32 
+
 ### 通道布局 ###
 对于多音频通道的流，一个通道布局可以具体描述其配置情况。为了描述通道布局，ffmpeg采用了一些特殊的语法。
 
