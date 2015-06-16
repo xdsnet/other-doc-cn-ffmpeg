@@ -594,7 +594,6 @@
 - `-dts_delta_threshold`：时间不连续增量阀值。
 - `-muxdelay seconds (input)`：设置最大 解复用-解码 延迟。参数是秒数值。
 - `-maxpreload seconds (input)`：设置初始的 解复用-解码延迟，参数是秒数值。
-- 
 - `-streamid output-stream-index:new-value (output)`:强制把输出文件中序号为`output-stream-id`的流命名为`new-value`
 的值。这对应于这样的场景：在存在了多输出文件时需要把一个流分配给不同的值。例如设置0号流为33号流，1号流为36号流到一个mpegts格式输出文件中（这相当于对流建立链接/别名）：
 > 
@@ -605,7 +604,7 @@
 	ffmpeg -i file.mov -an -vn -bsf:s mov2textsub -c:s copy -f rawvideo sub.txt
 
 - `-tag[:stream_specifier codec_tag (input/output,per-stream`：为匹配的流设置标签/fourcc。
-- 
+
 - `-timecode hh:mm:ssSEDff`:指定时间码，这里`SEP`如果是`:`则不减少时间码，如果是`;`或者`.`则可减少。
 > 
 	ffmpeg -i input.mpg -timecode 01:02:03.04 -r 30000/1001 -s ntsc output.mpg
