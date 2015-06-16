@@ -363,12 +363,7 @@
 	ffmpeg -dump_attachment:t "" -i INPUT
 
 	技术说明：附件流是作为编码扩展数据来工作的，所以其他流数据也能展开，而不仅仅是这个附件属性。
-<<<<<<< HEAD
-- `-noautorotate`：禁止自动数据不正确的输出，应用奇怪东西。
-=======
 - `-noautorotate`：禁止自动依据文件元数据旋转视频。
->>>>>>> origin/master
-
 ### 视频（video）选项 ###
 - `-vframes number (output)`：设置输出文件的帧数，是`-frames:v`的别名。
 - `-r[:stream_specifier] fps (input/output,per-stream)`：设置帧率（一种Hz值，缩写或者分数值）。
