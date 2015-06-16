@@ -611,13 +611,60 @@
 
 - `-tag[:stream_specifier codec_tag (input/output,per-stream`：为匹配的流设置标签/fourcc。
 - 
-- `-timecode hh:mm:ssSEDff`:指定时间码，这里`SEP`如果是`:`则减少时间码，如果是`;`或者`.`则可减少。
+- `-timecode hh:mm:ssSEDff`:指定时间码，这里`SEP`如果是`:`则不减少时间码，如果是`;`或者`.`则可减少。
 > 
 	ffmpeg -i input.mpg -timecode 01:02:03.04 -r 30000/1001 -s ntsc output.mpg
-- `-filter_complex filtergraph (global)`：定义一个复合滤镜，可以有任意数量的输入/输出。最简单的滤镜链图至少有一个输入和一个输出，且需要相同类型。参考`-filter`以获取更多信息（更有价值）。`filtergraph`用来指定一个滤镜链图。关于`滤镜链图的语法`可以参考`ffmpeg-filters`相关章节。 其中输入链标签必须对应于一个输入流。filtergraph的具体描述可以使用`file_index:stream_specifier`语法（事实上这同于`-map`）。如果`stream_specifier`匹配到了一个多输出流，则第一个被使用。
+- `-filter_complex filtergraph (global)`：定义一个复合滤镜，可以有任意数量的输入/输出。最简单的滤镜链图至少有一个输入和一个输出，且需要相同类型。参考`-filter`以获取更多信息（更有价值）。`filtergraph`用来指定一个滤镜链图。关于`滤镜链图的语法`可以参考`ffmpeg-filters`相关章节。
 
-	第一个未命名将匹配链接到的第一个未使用的。也可以使用`-map`来把输出链接到指定位置上。未标记的输出会附件到第一个输出文件。**注意**这个选项-参数只能是`-lavfi`一第一时间作为源，而不是其它。例如：
-- ffmpeg -i video.mkv -i image.png -filter_complex '[0:v][1:v]overlay[out]' -map
-'[out]' out.mkv
+	其中输入链标签必须对应于一个输入流。filtergraph的具体描述可以使用`file_index:stream_specifier`语法（事实上这同于`-map`）。如果`stream_specifier`匹配到了一个多输出流，则第一个被使用。滤镜链图中一个未命名输入将匹配链接到的输入中第一个未使用且类型匹配的流。
 
-- ``
+	使用`-map`来把输出链接到指定位置上。未标记的输出会添加到第一个输出文件。
+
+	**注意**这个选项参数在用于`-lavfi`源时不是普通的输入文件。
+
+>
+	ffmpeg -i video.mkv -i image.png -filter_complex '[0:v][1:v]overlay[out]' -map '[out]' out.mkv
+
+	这里`[0:v]`是第一个输入文件的第一个视频流，它作为滤镜的第一个（主要的）输入，同样，第二个输入文件的第一个视频流作为滤镜的第二个输入。
+
+	假如每个输入文件只有一个视频流，则我们可以省略流选择标签，所以上面的内容在这时等价于:
+> 
+	ffmpeg -i video.mkv -i image.png -filter_complex 'overlay[out]' -map '[out]' out.mkv
+
+	此外，在滤镜是单输出时我们还可以进一步省略输出标签，它会自动添加到输出文件，所以进一步简写为:
+> 
+	ffmpeg -i video.mkv -i image.png -filter_complex 'overlay' out.mkv
+	
+	利用`lavfi`生成5秒的 红`color`（色块）:
+> 
+    ffmpeg -filter_complex 'color=c=red' -t 5 out.mkv
+- `-lavfi filtergraph (global)`：定义一个复合滤镜，至少有一个输入和/或输出，等效于`-filter_complex`。
+- `-filter_complex_script filename (global)`：这个选项类似于`-filter_complex`，唯一不同就是它的参数是文件名，会从这个文件中读取复合滤镜的定义。
+- `-accurate_seek (input)`：这个选项会启用/禁止输入文件的精确定位（配合`-ss`)，它默认是启用的，即可以精确定位。需要时可以使用`-noaccurate_seek`来禁用，例如在复制一些流而转码另一些的场景下。
+- `-seek_timestamp (input)`：这个选项配合`-ss`参数可以在输入文件上启用或者禁止利用时间戳的定位。默认是禁止的，如果启用，则认为`-ss`选项参数是正式的时间戳，而不是由文件开始计算出来的偏移。这一般用于具有不是从0开始时间戳的文件，例如一些传输流（直播下）。
+- `-thread_queue_size size (input)`：这个选项设置可以从文件或者设备读取的最大排队数据包数量。对于低延迟高速率的直播流，如果不能及时读取，则出现丢包，所以提高这个值可以避免出现大量丢包现象。
+- `-override_ffserver (global)`:对`ffserver`的输入进行指定。使用这个选项`ffmpeg`可以把任意输入映射给`ffserver`并且同时控制很多编码可能。如果没有这个选项，则`ffmpeg`仅能根据`ffserver`所要求的数据进行传输。
+
+	这个选项应用场景是`ffserver`需要一些特性，但文件/设备不提供，这时可以利用`ffmpeg`作为中间处理环节控制后输出到`ffserver`到达所需要求。
+- `-sdp_file file (global)`：输出`sdp`信息到文件`file`。它会在至少一个输出不是`rtp`流时同时输出`sdp`信息。
+- `-discard (input)`：允许丢弃特定的流或者分离出的流上的部分帧，但不是所有的分离器都支持这个特性。
+	- `none`：不丢帧
+	- `default`：丢弃无效帧
+	- `noref`：丢弃所有非参考帧
+	- `bidir`：丢弃所有双向帧
+	- `nokey`：丢弃所有非关键帧
+	- `all`：丢弃所有帧
+- `-xerror (global)`:在出错时停止并退出
+
+
+作为一个特殊的例外，你可以把一个位图字幕（bitmap subtitle）流作为输入，它将转换作为同于文件最大尺寸的视频（如果没有视频则是720x576分辨率）。**注意**这仅仅是一个特殊的例外的临时解决方案，如果在`libavfilter`中字幕处理方案成熟后这样的处理方案将被移除。
+
+例如需要为一个储存在DVB-T上的MPEG-TS格式硬编码字幕，而且字幕延迟1秒：
+>
+    ffmpeg -i input.ts -filter_complex \
+	 '[#0x2ef] setpts=PTS+1/TB [sub] ; [#0x2d0] [sub] overlay' \
+ 	 -sn -map '#0x2dc' output.mkv
+
+(0x2d0, 0x2dc 以及 0x2ef 是MPEG-TS 的PIDs，分别指向视频、音频和字幕流，一般作为MPEG-TS中的0:0,0:3和0：7是实际流标签)
+
+ 
