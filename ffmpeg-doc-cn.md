@@ -290,13 +290,15 @@
 - `c[:stream_specifier] codec (input/output,per-stream) `
 - `-codec[:stream_specifier] codec (input/output,per-stream)`
 	为特定的文件选择编/解码模式，对于输出文件就是编码器，对于输入或者某个流就是解码器。选项参数中`codec`是编解码器的名字，或者是`copy`（仅对输出文件）则意味着流数据直接复制而不再编码。例如：
-	>
-		ffmpeg -i INPUT -map 0 -c:v libx264 -c:a copy OUTPUT 
-    是使用libx264编码所有的视频流，然后复制所有的音频流。
+>
+	ffmpeg -i INPUT -map 0 -c:v libx264 -c:a copy OUTPUT 
+    
+	是使用libx264编码所有的视频流，然后复制所有的音频流。
 
 	再如除了特殊设置外所有的流都由`c`匹配指定：
-	>
-		ffmpeg -i INPUT -map 0 -c copy -c:v:1 libx264 -c:a:137 libvorbis OUTPUT
+>
+	ffmpeg -i INPUT -map 0 -c copy -c:v:1 libx264 -c:a:137 libvorbis OUTPUT
+	
 	这将在输出文件中第2视频流按libx264编码，第138音频流按libvorbis编码，其余都直接复制输出。
 
 - `-t duration (input/output)`:限制输入/输出的时间。如果是在`-i`前面，就是限定从输入中读取多少时间的数据；如果是用于限定输出文件，则表示写入多少时间数据后就停止。`duration`可以是以秒为单位的数值或者 `hh:mm:ss[.xxx]`格式的时间值。 **注意**`-to`和`-t`是互斥的，`-t`有更高优先级。
@@ -309,8 +311,8 @@
 	- `position`可以是以秒为单位的数值或者 `hh:mm:ss[.xxx]`格式的时间值
 - `-itsoffset offset (input)`:设置输入文件的时间偏移。`offset`必须采用时间持续的方式指定，即可以有`-`号的时间值（以秒为单位的数值或者 `hh:mm:ss[.xxx]`格式的时间值）。偏移会附加到输入文件的时间码上，意味着所指定的流会以时间码+偏移量作为最终输出时间码。
 - `-timestamp date (output)`:设置在容器中记录时间戳。`date`必须是一个时间持续描述格式，即
-	> 
-		[(YYYY-MM-DD|YYYYMMDD)[T|t| ]]((HH:MM:SS[.m...]]])|(HHMMSS[.m...]]]))[Z] 格式。
+> 
+	[(YYYY-MM-DD|YYYYMMDD)[T|t| ]]((HH:MM:SS[.m...]]])|(HHMMSS[.m...]]]))[Z] 格式。
 - `-metadata[:metadata_specifier] key=value (output,per-metadata)`：指定元数据中的键值对。
 	
 	流或者章的`metadata_specifier`可能值是可以参考文档中`-map_metadata`部分了解。
@@ -615,7 +617,6 @@
 	使用`-map`来把输出链接到指定位置上。未标记的输出会添加到第一个输出文件。
 
 	**注意**这个选项参数在用于`-lavfi`源时不是普通的输入文件。
-
 >
 	ffmpeg -i video.mkv -i image.png -filter_complex '[0:v][1:v]overlay[out]' -map '[out]' out.mkv
 
@@ -670,18 +671,14 @@
 
 选用预设文件传递`vpre`、`apre`和`spre`的参数`arg`有下面一些搜索应用规则：
 
-	将在目录`$FFMPEG_DATADIR`(如果设置了)和`$HOME/.ffmpeg`目录和配置文件中定义的数据目录（一般是`PREFIX/share/ffmpeg`），以及`ffpresets`所在的执行文件目录下ffmpeg搜索对应的预定义文件`arg.ffpreset`，例如参数是`libvpx-1080p`,则对应于文件`libvpx-1080p.ffpreset`
-
-	如果没有该文件，则进一步在前述目录下搜索`codec_name-arg.ffpreset`文件，如果找到即应用。例如选择了视频编码器`-vcodec libvpx`和`-vpre 1080p`则对应的预设文件名是`libvpx-1080p.ffpreset`
+- 将在目录`$FFMPEG_DATADIR`(如果设置了)和`$HOME/.ffmpeg`目录和配置文件中定义的数据目录（一般是`PREFIX/share/ffmpeg`），以及`ffpresets`所在的执行文件目录下ffmpeg搜索对应的预定义文件`arg.ffpreset`，例如参数是`libvpx-1080p`,则对应于文件`libvpx-1080p.ffpreset`
+- 如果没有该文件，则进一步在前述目录下搜索`codec_name-arg.ffpreset`文件，如果找到即应用。例如选择了视频编码器`-vcodec libvpx`和`-vpre 1080p`则对应的预设文件名是`libvpx-1080p.ffpreset`
 
 #### avpreset类型预设文件 ####
 `avprest`类型预设文件以`pre`选项引入。他们工作方式类似于`ffpreset`类型预设文件（即也是选项值对序列），但只对于特定编码器选项，因此一些 选项值 对于不适合的编码器是无效的。根据`pre`的参数`arg`查找预设文件基于如下规则：
-
-	首先搜索`$AVCONV_DATADIR`所指目录(如果定义了)，其次搜索`$HOME/.avconv`目录，然后搜索执行文件所在目录(通常是`PREFIX/share/ffmpeg`)，在其下查找`arg.avpreset`文件。第一个匹配的文件被应用。
-
-	如果查找不到，如果还同步还指定了编码（如`-vcodec libvpx`）再以前面目录顺序，以`codec_name-arg.avpreset`再次查找文件。例如对于有选项`-vcodec libvpx`和`-pre 1080p`将搜索`libvpx-1080p.avpreset`
-
-	如果还没有找到，将在当前目录下搜索`arg.avpreset`文件。
+- 首先搜索`$AVCONV_DATADIR`所指目录(如果定义了)，其次搜索`$HOME/.avconv`目录，然后搜索执行文件所在目录(通常是`PREFIX/share/ffmpeg`)，在其下查找`arg.avpreset`文件。第一个匹配的文件被应用。
+- 如果查找不到，如果还同步还指定了编码（如`-vcodec libvpx`）再以前面目录顺序，以`codec_name-arg.avpreset`再次查找文件。例如对于有选项`-vcodec libvpx`和`-pre 1080p`将搜索`libvpx-1080p.avpreset`
+- 如果还没有找到，将在当前目录下搜索`arg.avpreset`文件。
 ## 技巧/提示 ##
 - 如果流有非常低的码率，使用低帧率和小的GOP尺寸。这对于RealVideo在Linux下面的播放显得不是特别快时特别有用，因为它可以跳过一些帧，例如：
 > 
@@ -711,6 +708,8 @@
 
 ### 视频和音频文件格式转换 ###
 任何支持的文件格式或者协议都可以作为ffmpeg输入。例如：
+
+
 - 你可以使用YUV文件作为输入
 > 	
 	ffmpeg -i /tmp/test%d.Y /tmp/out.mpg
@@ -721,29 +720,35 @@
 	/tmp/test1.Y, /tmp/test1.U, /tmp/test1.V, etc...
 
 	这里Y还有对应分辨率的2个关联文件U和V。这是一种raw数据文件而没有文件头，它可以被所有的视频解码器生成。你必须利用`-s`对它指定一个尺寸而不是让ffmpeg去猜测。
+
 - 你可以把raw YUV420P文件作为输入：
 > 
     ffmpeg -i /tmp/test/yuv /tmp/out.avi
 
 	test.yuv 是一个包含raw YUV通道数据的文件。每个帧先是Y数据，然后是U和V数据。
+
 - 也可以输出YUV420P类型的文件
 > 
     ffmpeg -i mydivx.avi hugefile.yuv
+
 - 可以设置一些输入文件和输出文件  
 > 
 	ffmpeg -i /tmp/a.wav -s 640x480 -i /tmp/a.yuv /tmp/a.mpg
 	
 	这将转换一个音频和raw的YUV视频到一个MPEG文件中
+
 - 你也可以同时对音频或者视频进行转换
 > 
 	ffmpeg -i /tmp/a.wav -ar 22050 /tmp/a.mp2
 
 	这里把a.wav转换为MPEG音频，同时转换了采样率为22050HZ
+
 - 你也可以利用映射同时编码多个格式作为输入或者输出：
 > 
 	ffmpeg -i /tmp/a.wav -map 0:a -b:a 64k /tmp/a.mp2 -map 0:a -b:a 128k /tmp/b.mp2
 
 	这将同时把a.wav以64k码率输出到a.mp2，以128k码率输出到b.mp2。 "-map file:index"指定了对于每个输出是连接到那个输入流的。
+
 - 还可以转换解码VOBs：  
 > 
     ffmpeg -i snatch_1.vob -f avi -c:v mpeg4 -b:v 800k -g 300 -bf 2 -c:a libmp3lame -b:a 128k snatch.avi
@@ -751,6 +756,7 @@
 	这是一个典型的DVD抓取例子。这里的输入是一个VOB文件，输出是MPEG-4编码视频以及MP3编码音频的AVI文件。**注意**在这个命令行里使用了B-frames（B帧）是兼容DivX5的，GOP设置为300则意味着有一个内帧是适合29.97fps的输入视频。此外，音频流采用MP3编码需要运行LAME支持，它需要通过在编译是设置`--enable-libmp3lame`。这种转换设置在多语言DVD抓取转换出所需的语言音频时特别有用。
 
 	**注意**要了解支持那些格式，可以采用`ffmpeg -formats`
+
 - 可以从一个视频扩展生成图片（序列），或者从一些图片生成视频：
 	- 导出图片
 > 
@@ -768,14 +774,17 @@
 	当导入一个图片序列时，`-i`也支持shell的通配符模式(内置的)，这需要同时选择image2的特性选项`-pattern_type glob`：例如下面就利用了所有匹配`foo-*.jpeg`的图片序列创建一个视频：
 > 
 	ffmpeg -f image2 -pattern_type glob -framerate 12 -i 'foo-*.jpeg' -s WxH foo.avi
+
 -  你可以把很多相同类型的流一起放到一个输出中：
 > 
 	ffmpeg -i test1.avi -i test2.avi -map 1:1 -map 1:0 -map 0:1 -map 0:0 -c copy -y test12.nut
 
 	这里最后输出文件test12.nut包括了4个流，其中流的顺序完全根据前面`-map`的指定顺序。
+
 - 强制为固定码率编码(CBR)输出视频：
 > 
 	ffmpeg -i myfile.avi -b 4000k -minrate 4000k -maxrate 4000k -bufsize 1835k out.m2v
+
 - 使用`lambda`工具的4个选项`lmin`，`lmax`，`mblmin`以及`mblmax`使你能更简单的从`q`转换到`QP2LAMBDA`:
 > 
 	ffmpeg -i src.ext -lmax 21*QP2LAMBDA dst.ext
@@ -1246,11 +1255,11 @@ ffmpeg源码中的工具`tools/ffescape`被用于自动处理引用和转义。
     返回一个0.0-1.0间的随机数，x是一个随机数种子。
 - root(expr, max)
 
-    Find an input value for which the function represented by expr with argument ld(0) is 0 in the interval 0..max.
+    对于不同的输入计算表达式expr的值，直到max输入值。即依次取ld(x)，x的值为0..max，把ld(x)值作为参数计算expr值
 
-    The expression in expr must denote a continuous function or the result is undefined.
+    表达式expr必须是一个连续函数，否则结果不定。
 
-    ld(0) is used to represent the function input value, which means that the given expression will be evaluated multiple times with various input values that the expression can access through ld(0). When the expression evaluates to 0 then the corresponding input value will be returned.
+    ld(0)被用作expr表达式的参数，所以表达式可以依据不同的值计算多次。
 - sin(x)
 
     计算x的正弦
@@ -1265,7 +1274,7 @@ ffmpeg源码中的工具`tools/ffescape`被用于自动处理引用和转义。
     计算 1/(1 + exp(4*x)).
 - st(var, expr)
 
-    对var变量在内部存储一个expr值，供以后使用，var范围为0-9.**注意**这些变量当前不能再表达式间共享
+    对var变量在内部存储一个expr值，供以后使用，var范围为0-9.**注意**这些变量当前不能在表达式间共享
 - tan(x)
 
     返回x的正切.
@@ -1275,14 +1284,13 @@ ffmpeg源码中的工具`tools/ffescape`被用于自动处理引用和转义。
 - taylor(expr, x)
 - taylor(expr, x, id)
 
-    计算泰勒（Taylor）级数值。
-	Evaluate a Taylor series at x, given an expression representing the ld(id)-th derivative of a function at 0.
+    计算泰勒（Taylor）级数值。给出表达式（ld(id)）在0阶的导数函数,即taylor(expr,x)=taylor(expr,x,0)
 
-    When the series does not converge the result is undefined.
+    如果级数不收敛，则结果是不确定的。
 
-    ld(id) is used to represent the derivative order in expr, which means that the given expression will be evaluated multiple times with various input values that the expression can access through ld(id). If id is not specified then 0 is assumed.
+    ld(id)用来表示expr的导数阶，这意味着对给定的表达式，输入不同的值可以通过ld(id)进行多次计算。这里我们假定不是预设的0阶。
 
-    Note, when you have the derivatives at y instead of 0, taylor(expr, x-y) can be used.
+    **注意**当你用一个Y值替代默认的0时，相当于计算 taylor(expr, x-y) 
 - time(0)
 
     返回当前时间，单位为秒
