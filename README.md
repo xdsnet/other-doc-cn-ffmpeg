@@ -2,4 +2,4 @@
 一些文档中文翻译项目，主要利用markdown编写文档
 
 ## 子项目列表
-- ffmpeg-all文档翻译，见ffmpeg-doc-cn.md文件
+- [ffmpeg-all文档翻译](ffmpeg-doc/ffmpeg-doc-cn.md)
