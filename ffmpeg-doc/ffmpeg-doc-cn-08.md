@@ -1,345 +1,257 @@
-## 语法 ##
-这个章节介绍采用ffmpeg库和工具时的一些语法和格式要求。
+## 表达式计算/求值 ##
+在计算表达式时，ffmpeg通过`libavutil/eval.h`接口调用内部计算器进行计算。
 
-### 引用与转义(Quoting and escaping) ###
-ffmpeg采用如下的引用和转义机制，除非明确规定，以下规则都适用：
-- `"'"`和`"\"`分别用于（引用和转义）特殊字符。除了它们可能还有其它特殊字符，但这只在特定的语法中有效。
-- 一个特殊字符必须有转义前缀`"\"`
-- 所有的引用字符串都由`"'"`封闭包含。引号`"'"`本身不能被引用，所以你可能需要关闭引用或者转义。
-- 前导和尾随的空格字符除非专门由引号引用或者转义，否则都会在解析字符串时移除。
+表达式可以包含一元运算符、运算符、常数和函数
 
-**注意**在使用命令行或者脚本时，你可能需要2级转义，这取决于你shell环境支持的语法。
+两个表达式`expr1`和`expr2`可以组合起来成为"expr1;expr2" ，两个表达式都会被计算，但是新表达式（组合起来的）值实为表达式`expr2`的值。
 
-声明在`libavutil/avstring.h`中的函数`av_get_token`被用于任务分析中的引用和转义处理。
+表达式支持的二元运算符有:`+`，`-`，`*`,`/`,`^`
 
-ffmpeg源码中的工具`tools/ffescape`被用于自动处理引用和转义。
+一元运算符:`+`,`-`
 
-#### 语法例子 ####
-- 转义`Crime d'Amour`中的`'`这个特殊字符:
-> 	
-	Crime d\'Amour	
-- 下面的字符串因为是引用，所有其中的`'`需要特殊转义处理
-> 
-	'Crime d'\''Amour'
-- 包括前导和后随的空格必须要引用模式:
-> 
-	'  this string starts and ends with whitespaces  '
-- 转义和引用可以接续在一起：
-> 
-	' The string '\'string\'' is a string '
-- 为了包括一个`\`需要引用或者转义
-> 
-	'c:\foo' can be written as c:\\foo
+以及下面的函数：
 
-### 日期 ###
-接受如下的语法:
-> 
-	[(YYYY-MM-DD|YYYYMMDD)[T|t| ]]((HH:MM:SS[.m...]]])|(HHMMSS[.m...]]]))[Z]
-	now
-如果值为`now`表示当前时间
-
-时间是本地时间，除非`Z`被附加到最后，它表示采用`UTC`时间。如果年-月-日没有指定就以当前的年-月-日。
-
-### 持续时间 ###
-它有两种表示方式：
-- `[-][HH:]MM:SS[.m...]` 
+- abs(x) 
 	
-	`HH`表示小时数，`MM`表示分钟数（最多2位数字）`SS`表示秒数（也最多2位数字），`m`是`SS`的小数位值
-- `[-]S+[.m...]`
+	返回x的绝对值.
+- acos(x)
 
-	`S`是秒的数值，`m`是`S`的小数位值。
+    计算x反余弦 .
+- asin(x)
 
-两种语法前面都可选`'-'`号，表示负数持续时间。
+    计算x的反正弦.
+- atan(x)
 
-#### 持续时间例子 ####
-下面均是有效持续时间:
-- '55' 表示55秒
-- '12:03:45' 表示12小时3分钟45秒
-- '23.189' 表示23.189秒
+    计算x反正切.
+- between(x, min, max)
 
-### 视频尺寸（分辨率） ###
-指定视频源的尺寸大小，它可以是一些表示特定（预设）尺寸的字符串名或者`widthxheight`（其中width和height都是数字值）的字符串
-下面是一些预设的表示尺寸的字符串名及其对应分辨率:
-- ‘ntsc’    720x480 
-- ‘pal’    720x576 
-- ‘qntsc’    352x240 
-- ‘qpal’    352x288 
-- ‘sntsc’    640x480 
-- ‘spal’    768x576 
-- ‘film’    352x240 
-- ‘ntsc-film’    352x240 
-- ‘sqcif’    128x96 
-- ‘qcif’    176x144 
-- ‘cif’    352x288 
-- ‘4cif’    704x576 
-- ‘16cif’    1408x1152 
-- ‘qqvga’    160x120 
-- ‘qvga’    320x240 
-- ‘vga’    640x480 
-- ‘svga’    800x600 
-- ‘xga’    1024x768 
-- ‘uxga’    1600x1200 
-- ‘qxga’    2048x1536 
-- ‘sxga’    1280x1024 
-- ‘qsxga’    2560x2048 
-- ‘hsxga’    5120x4096 
-- ‘wvga’    852x480 
-- ‘wxga’    1366x768 
-- ‘wsxga’    1600x1024 
-- ‘wuxga’    1920x1200 
-- ‘woxga’    2560x1600 
-- ‘wqsxga’    3200x2048 
-- ‘wquxga’    3840x2400 
-- ‘whsxga’    6400x4096 
-- ‘whuxga’    7680x4800 
-- ‘cga’    320x200 
-- ‘ega’    640x350 
-- ‘hd480’    852x480 
-- ‘hd720’    1280x720 
-- ‘hd1080’    1920x1080 
-- ‘2k’    2048x1080 
-- ‘2kflat’    1998x1080 
-- ‘2kscope’    2048x858 
-- ‘4k’    4096x2160 
-- ‘4kflat’    3996x2160 
-- ‘4kscope’    4096x1716 
-- ‘nhd’    640x360 
-- ‘hqvga’    240x160 
-- ‘wqvga’    400x240 
-- ‘fwqvga’    432x240 
-- ‘hvga’    480x320 
-- ‘qhd’    960x540 
+    判断min<=x<=max是否成立，成立返回1，否则返回0.
+- bitand(x, y)
+- bitor(x, y)
 
-### 视频帧率 ###
-指定视频的帧速率，除了用每秒帧数表示外，还可以用`frame_rate_num/frame_rate_den`这样的格式字符串表示，此外还有一些预定义的帧率名字符串。
-下面就是一些预定义的帧率名及对应的帧率:
-- 'ntsc' 30000/1001
-- 'pal' 25/1
-- 'qpal'	 25/1
-- 'sntsc' 30000/1001
-- 'spal' 25/1
-- 'film' 24/1
-- 'ntsc-film' 24000/1001
-### 比率 ###
-一个比率值可以是一个表达式或者`numerator.denominator`一样的含小数值。
+	返回x和y按位与/或的值
 
-**注意**比率无限值（1/0)或者负数值被认为是有效的，这里你需要摒弃以往的一些看法。
+	**注意**计算是作为整数的，转换为整数和转换回浮点数都会损伤精度。这可能造成意外结果(通常2^53和更大的数)
+- ceil(expr)
 
-未定义的值可以用"0:0"字符串表示。
+    返回大于expr的最接近整数，例如"ceil(1.5)" 返回"2.0".
+- clip(x, min, max)
 
-### 颜色/Color ###
-允许采用下面预定义的颜色名或者一个`[0x|#]RRGGBB[AA]`这样序列的16进制数字值，可以通过`@`来附加透明度表示，透明度分量（alpha）可以是"0x"后面跟一个16进制数或者0到1之间的十进制字符串，它代表不透明度值（'0x00'或者'0'表示完全透明，'0xFF'或者'1'表示完全不透明），如果没有专门指定透明分量，则默认为'0XFF'。
+    Return the value of x clipped between min and max.
+- cos(x)
 
-'random'字符串会随机一个颜色。
+    计算x的余弦.
+- cosh(x)
 
-下面是预定义的颜色名以及对应的颜色值:
+    计算x的双余弦.
+- eq(x, y)
 
-- ‘AliceBlue’    0xF0F8FF 
-- ‘AntiqueWhite’   0xFAEBD7 
-- ‘Aqua’    0x00FFFF 
-- ‘Aquamarine’    0x7FFFD4 
-- ‘Azure’    0xF0FFFF 
-- ‘Beige’    0xF5F5DC 
-- ‘Bisque’    0xFFE4C4 
-- ‘Black’    0x000000 
-- ‘BlanchedAlmond’    0xFFEBCD 
-- ‘Blue’    0x0000FF 
-- ‘BlueViolet’    0x8A2BE2 
-- ‘Brown’    0xA52A2A 
-- ‘BurlyWood’    0xDEB887 
-- ‘CadetBlue’    0x5F9EA0 
-- ‘Chartreuse’    0x7FFF00 
-- ‘Chocolate’    0xD2691E 
-- ‘Coral’    0xFF7F50 
-- ‘CornflowerBlue’    0x6495ED 
-- ‘Cornsilk’    0xFFF8DC 
-- ‘Crimson’    0xDC143C 
-- ‘Cyan’    0x00FFFF 
-- ‘DarkBlue’    0x00008B 
-- ‘DarkCyan’    0x008B8B 
-- ‘DarkGoldenRod’    0xB8860B 
-- ‘DarkGray’    0xA9A9A9 
-- ‘DarkGreen’    0x006400 
-- ‘DarkKhaki’    0xBDB76B 
-- ‘DarkMagenta’    0x8B008B 
-- ‘DarkOliveGreen’    0x556B2F 
-- ‘Darkorange’    0xFF8C00 
-- ‘DarkOrchid’    0x9932CC 
-- ‘DarkRed’    0x8B0000 
-- ‘DarkSalmon’    0xE9967A 
-- ‘DarkSeaGreen’    0x8FBC8F 
-- ‘DarkSlateBlue’    0x483D8B 
-- ‘DarkSlateGray’    0x2F4F4F 
-- ‘DarkTurquoise’    0x00CED1 
-- ‘DarkViolet’    0x9400D3 
-- ‘DeepPink’    0xFF1493 
-- ‘DeepSkyBlue’    0x00BFFF 
-- ‘DimGray’    0x696969 
-- ‘DodgerBlue’    0x1E90FF 
-- ‘FireBrick’    0xB22222 
-- ‘FloralWhite’    0xFFFAF0 
-- ‘ForestGreen’    0x228B22 
-- ‘Fuchsia’    0xFF00FF 
-- ‘Gainsboro’    0xDCDCDC 
-- ‘GhostWhite’    0xF8F8FF 
-- ‘Gold’    0xFFD700 
-- ‘GoldenRod’    0xDAA520 
-- ‘Gray’    0x808080 
-- ‘Green’    0x008000 
-- ‘GreenYellow’    0xADFF2F 
-- ‘HoneyDew’    0xF0FFF0 
-- ‘HotPink’    0xFF69B4 
-- ‘IndianRed’    0xCD5C5C 
-- ‘Indigo’    0x4B0082 
-- ‘Ivory’    0xFFFFF0 
-- ‘Khaki’    0xF0E68C 
-- ‘Lavender’    0xE6E6FA 
-- ‘LavenderBlush’    0xFFF0F5 
-- ‘LawnGreen’    0x7CFC00 
-- ‘LemonChiffon’    0xFFFACD 
-- ‘LightBlue’    0xADD8E6 
-- ‘LightCoral’    0xF08080 
-- ‘LightCyan’    0xE0FFFF 
-- ‘LightGoldenRodYellow’    0xFAFAD2 
-- ‘LightGreen’    0x90EE90 
-- ‘LightGrey’    0xD3D3D3 
-- ‘LightPink’    0xFFB6C1 
-- ‘LightSalmon’    0xFFA07A 
-- ‘LightSeaGreen’    0x20B2AA 
-- ‘LightSkyBlue’    0x87CEFA 
-- ‘LightSlateGray’    0x778899 
-- ‘LightSteelBlue’    0xB0C4DE 
-- ‘LightYellow’    0xFFFFE0 
-- ‘Lime’    0x00FF00 
-- ‘LimeGreen’    0x32CD32 
-- ‘Linen’    0xFAF0E6 
-- ‘Magenta’    0xFF00FF 
-- ‘Maroon’    0x800000 
-- ‘MediumAquaMarine’    0x66CDAA 
-- ‘MediumBlue’    0x0000CD 
-- ‘MediumOrchid’    0xBA55D3 
-- ‘MediumPurple’    0x9370D8 
-- ‘MediumSeaGreen’    0x3CB371 
-- ‘MediumSlateBlue’    0x7B68EE 
-- ‘MediumSpringGreen’    0x00FA9A 
-- ‘MediumTurquoise’    0x48D1CC 
-- ‘MediumVioletRed’    0xC71585 
-- ‘MidnightBlue’    0x191970 
-- ‘MintCream’    0xF5FFFA 
-- ‘MistyRose’    0xFFE4E1 
-- ‘Moccasin’    0xFFE4B5 
-- ‘NavajoWhite’    0xFFDEAD 
-- ‘Navy’    0x000080 
-- ‘OldLace’    0xFDF5E6 
-- ‘Olive’    0x808000 
-- ‘OliveDrab’    0x6B8E23 
-- ‘Orange’    0xFFA500 
-- ‘OrangeRed’    0xFF4500 
-- ‘Orchid’    0xDA70D6 
-- ‘PaleGoldenRod’    0xEEE8AA 
-- ‘PaleGreen’    0x98FB98 
-- ‘PaleTurquoise’    0xAFEEEE 
-- ‘PaleVioletRed’    0xD87093 
-- ‘PapayaWhip’    0xFFEFD5 
-- ‘PeachPuff’    0xFFDAB9 
-- ‘Peru’    0xCD853F 
-- ‘Pink’    0xFFC0CB 
-- ‘Plum’    0xDDA0DD 
-- ‘PowderBlue’    0xB0E0E6 
-- ‘Purple’    0x800080 
-- ‘Red’    0xFF0000 
-- ‘RosyBrown’    0xBC8F8F 
-- ‘RoyalBlue’    0x4169E1 
-- ‘SaddleBrown’	0x8B4513 
-- ‘Salmon’    0xFA8072 
-- ‘SandyBrown’    0xF4A460 
-- ‘SeaGreen’    0x2E8B57 
-- ‘SeaShell’    0xFFF5EE 
-- ‘Sienna’    0xA0522D 
-- ‘Silver’    0xC0C0C0 
-- ‘SkyBlue’    0x87CEEB 
-- ‘SlateBlue’    0x6A5ACD 
-- ‘SlateGray’    0x708090 
-- ‘Snow’    0xFFFAFA 
-- ‘SpringGreen’    0x00FF7F 
-- ‘SteelBlue’    0x4682B4 
-- ‘Tan’    0xD2B48C 
-- ‘Teal’    0x008080 
-- ‘Thistle’    0xD8BFD8 
-- ‘Tomato’    0xFF6347 
-- ‘Turquoise’    0x40E0D0 
-- ‘Violet’    0xEE82EE 
-- ‘Wheat’    0xF5DEB3 
-- ‘White’    0xFFFFFF 
-- ‘WhiteSmoke’    0xF5F5F5 
-- ‘Yellow’    0xFFFF00 
-- ‘YellowGreen’    0x9ACD32 
+    如果x==y返回1，否则为0 otherwise.
+- exp(x)
 
-### 通道布局 ###
-对于多音频通道的流，一个通道布局可以具体描述其配置情况。为了描述通道布局，ffmpeg采用了一些特殊的语法。
+    计算指数x，(底数为e,即计算欧拉数（Euler’s number）)
+- floor(expr)
 
-除了可以采用ID标识外，也可以采用下表的预定义:
-- ‘FL’    front left 左前
-- ‘FR’    front right 右前
-- ‘FC’    front center 前中
-- ‘LFE’    low frequency 重低音
-- ‘BL’    back left 左后
-- ‘BR’    back right 右后
-- ‘FLC’    front left-of-center 前左中 
-- ‘FRC’    front right-of-center 前右中
-- ‘BC’    back center 后中
-- ‘SL’    side left 左侧
-- ‘SR’    side right 右侧
-- ‘TC’    top center 顶中
-- ‘TFL’    top front left 顶左前 
-- ‘TFC’    top front center 顶前中
-- ‘TFR’    top front right 顶右前
-- ‘TBL’    top back left 顶左后
-- ‘TBC’    top back center 顶后中
-- ‘TBR’    top back right 顶右后
-- ‘DL’    downmix left 左缩混
-- ‘DR’    downmix right 右缩混
-- ‘WL’    wide left 左边
-- ‘WR’    wide right 右边
-- ‘SDL’    surround direct left  左直通
-- ‘SDR’    surround direct right 右直通
-- ‘LFE2’    low frequency 2 超重低音
+    返回不大于expr的整数，例如 "floor(-1.5)" 为 "-2.0".
+- gauss(x)
 
-标准的通道布局可以采用如下的定义:
-- ‘mono’    FC 
-- ‘stereo’    FL+FR 
-- ‘2.1’    FL+FR+LFE 
-- ‘3.0’    FL+FR+FC 
-- ‘3.0(back)’    FL+FR+BC 
-- ‘4.0’    FL+FR+FC+BC 
-- ‘quad’    FL+FR+BL+BR 
-- ‘quad(side)’    FL+FR+SL+SR 
-- ‘3.1’    FL+FR+FC+LFE 
-- ‘5.0’    FL+FR+FC+BL+BR 
-- ‘5.0(side)’    FL+FR+FC+SL+SR 
-- ‘4.1’    FL+FR+FC+LFE+BC 
-- ‘5.1’    FL+FR+FC+LFE+BL+BR 
-- ‘5.1(side)’    FL+FR+FC+LFE+SL+SR 
-- ‘6.0’    FL+FR+FC+BC+SL+SR 
-- ‘6.0(front)’    FL+FR+FLC+FRC+SL+SR 
-- ‘hexagonal’    FL+FR+FC+BL+BR+BC 
-- ‘6.1’    FL+FR+FC+LFE+BC+SL+SR 
-- ‘6.1’    FL+FR+FC+LFE+BL+BR+BC 
-- ‘6.1(front)’    FL+FR+LFE+FLC+FRC+SL+SR 
-- ‘7.0’    FL+FR+FC+BL+BR+SL+SR 
-- ‘7.0(front)’    FL+FR+FC+FLC+FRC+SL+SR 
-- ‘7.1’    FL+FR+FC+LFE+BL+BR+SL+SR 
-- ‘7.1(wide)’    FL+FR+FC+LFE+BL+BR+FLC+FRC 
-- ‘7.1(wide-side)’    FL+FR+FC+LFE+FLC+FRC+SL+SR 
-- ‘octagonal’    FL+FR+FC+BL+BR+BC+SL+SR 
-- ‘downmix’    DL+DR 
+    计算x的高斯（Gauss ）函数值,即计算(-x*x/2) / sqrt(2*PI).
+- gcd(x, y)
 
-一个特定的通道布局可以是一组由`+`或者`|`连接起来多个值，其中每个值可以是：
-- 前面的标准通道布局名，例如'mono','stereo','4.0','quad','5.0'等等
-- 或者单个命名通道如'FL','FR','FC','LFE'等等
-- 多个通道数字序号，使用后缀'c'的十进制，对于利用数字表示的默认通道布局，参考`av-get_default_channel_layout`说明。
-- 通道布局蒙版(mask)，是'0x'起始的16进制，参考在`libavutil/channel_layout.h`中声明的`AV_CH_*`宏。
+    返回x和y的最大公约数，如果x和y为0或者任意数小于0则行为未定义。
+- gt(x, y)
 
-从libavutil版本53开始，尾随'c'的十进制数表示通道变成必须（除非采用16进制的蒙版来表示通道）
+    返回判断x>y的结果，符合则为1，否则为0
+- gte(x, y)
 
-参考声明于`libavutil/channel_layout.h`中的`av_get_channel_layout`进行深入了解。
+    返回判断x>=y的结果，符合则为1，否则为0
+- hypot(x, y)
+
+    这个和C语言中的函数有相同名字和功能，相当于计算"sqrt(x*x + y*y)",是求长为x，宽为y的斜边长度（勾股定理）
+- if(x, y)
+
+    判断x值，如果x值为非0，则返回y，否则返回0
+- if(x, y, z)
+
+    判断x值，如果x值为非0，则返回y，否则返回z.
+- ifnot(x, y)
+
+    判断x值，如果x值为0，则返回y，否则返回0
+- ifnot(x, y, z)
+
+    判断x值，如果x值为0，则返回y，否则返回z.
+- isinf(x)
+
+    如果x值是正负无穷则返回1.0.否则返回0.0
+- isnan(x)
+
+    如果x是`NAN`则返回1.0，否则返回0.0
+- ld(var)
+
+    加载预订的内部变量var对应值，其中值是利用st(var, expr)存储的
+- log(x)
+
+    计算x的自然对数值
+- lt(x, y)
+
+    返回x<y判断式值，符合为1，否则为0
+- lte(x, y)
+
+    返回x<=y判断式值，符合为1，否则为0
+- max(x, y)
+
+    返回x和y中的更大的值
+- min(x, y)
+
+    返回x和y中的更小的值
+- mod(x, y)
+
+    计算x%y
+- not(expr)
+
+    如果expr==0则返回1，否则返回0
+- pow(x, y)
+
+    计算"(x)^(y)".
+- print(t)
+- print(t, l)
+
+    以日志层次l打印t，如果l没有定义则采用当前默认日志层次，返回打印内容。
+- random(x)
+
+    返回一个0.0-1.0间的随机数，x是一个随机数种子。
+- root(expr, max)
+
+    对于不同的输入计算表达式expr的值，直到max输入值。即依次取ld(x)，x的值为0..max，把ld(x)值作为参数计算expr值
+
+    表达式expr必须是一个连续函数，否则结果不定。
+
+    ld(0)被用作expr表达式的参数，所以表达式可以依据不同的值计算多次。
+- sin(x)
+
+    计算x的正弦
+- sinh(x)
+
+    计算x的双曲正弦
+- sqrt(expr)
+
+    计算x的平方根。相当于 "(expr)^.5".
+- squish(x)
+
+    计算 1/(1 + exp(4*x)).
+- st(var, expr)
+
+    对var变量在内部存储一个expr值，供以后使用，var范围为0-9.**注意**这些变量当前不能在表达式间共享
+- tan(x)
+
+    返回x的正切.
+- tanh(x)
+
+    计算x的双曲正切
+- taylor(expr, x)
+- taylor(expr, x, id)
+
+    计算泰勒（Taylor）级数值。给出表达式（ld(id)）在0阶的导数函数,即taylor(expr,x)=taylor(expr,x,0)
+
+    如果级数不收敛，则结果是不确定的。
+
+    ld(id)用来表示expr的导数阶，这意味着对给定的表达式，输入不同的值可以通过ld(id)进行多次计算。这里我们假定不是预设的0阶。
+
+    **注意**当你用一个Y值替代默认的0时，相当于计算 taylor(expr, x-y) 
+- time(0)
+
+    返回当前时间，单位为秒
+- trunc(expr)
+
+    返回expr最接近的（向0）整数，如"trunc(-1.5)" 值为 "-1.0".
+- while(cond, expr)
+
+    当cond不为0时循环执行expr,直至cond为0 
+
+有如下一些常量:
+- PI
+
+    单位圆周长与直径比，约3.14 
+- E
+
+    exp(1)计算值 (Euler’s 欧拉数),约2.718 
+- PHI
+
+    黄金分割比，(1+sqrt(5))/2计算值，约1.618 
+
+以及布尔运算，其中非0值表示"true"(真),以及运算符:
+- `*` 表示 `AND` 与操作
+- `+` 表示 `OR` 或操作
+
+例如：
+	要表示 if (A AND B) then C
+
+
+	等效于if(A*B,C)
+
+如果你了解C语言代码，其所有的一元和二元以及定义的常数均可用于表达式。
+
+表达式也支持国际标准的单位前/后缀（定义），例如`i`附加在数值后，表示这个数值是基于1024而不是1000计算幂的，"B"表示"Byte"，并可以附加一个单位前缀或者当地使用，例如允许`KB`，`MiB`，`G`和`B`作为单位后缀。
+
+下面的列表就是当前遵循的国际体系前缀列表，并给出了对应2的整10次方值：
+
+y
+
+    10^-24 / 2^-80 
+z
+
+    10^-21 / 2^-70 
+a
+
+    10^-18 / 2^-60 
+f
+
+    10^-15 / 2^-50 
+p
+
+    10^-12 / 2^-40 
+n
+
+    10^-9 / 2^-30 
+u
+
+    10^-6 / 2^-20 
+m
+
+    10^-3 / 2^-10 
+c
+
+    10^-2 
+d
+
+    10^-1 
+h
+
+    10^2 
+k
+
+    10^3 / 2^10 
+K
+
+    10^3 / 2^10 
+M
+
+    10^6 / 2^20 
+G
+
+    10^9 / 2^30 
+T
+
+    10^12 / 2^40 
+P
+
+    10^15 / 2^40 
+E
+
+    10^18 / 2^50 
+Z
+
+    10^21 / 2^60 
+Y
+
+    10^24 / 2^70 
