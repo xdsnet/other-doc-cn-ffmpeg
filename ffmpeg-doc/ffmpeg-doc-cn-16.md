@@ -715,3 +715,194 @@ LAME (Lame Ain’t an MP3 Encoder) MP3 编码器封装
 
     为1表示允许ABR，lame `--abr`设置为一共的码率，这里只是表示采用ABR，码率还是由`b`设置
 
+### libopencore-amrnb ###
+开放核心自适应多速率窄带(OpenCORE Adaptive Multi-RateNarrowband)编码器
+
+需要相应的头和库进行编译，并利用 ` --enable-libopencore-amrnb --enable-version3`以允许编译配置
+
+是单声道编码器，常用于8k采样率，可以通过设置`strict` 到 `unofficial`或者更低来选用更低采样率
+
+#### libopencore-amrnb选项 ####
+
+- b
+
+    设置码率，只有下面的码率被支持，设置为其他值将自动用最近的替代
+
+    4750
+    5150
+    5900
+    6700
+    7400
+    7950
+    10200
+    12200
+
+- dtx
+
+    设置为1表示允许连续传输 (产生少量噪音)，默认为0
+
+### libshine ###
+Shine整形Mp3编码的封装
+
+Shine是一种整形MP3编码器，它在没有FPU（浮点协处理）的平台上可以更快更好，例如一些armel CPU或者一些电话或者平板上。但是不要期望获得更好的品质（与LAME或者其他产品级编码器比较）。同时，根据项目主页，该编码器可能并不提供给免费bug修正，代码是很久以前写的，已经有5年以上没有更新了。
+
+只支持立体声和单声道，而且是CBR模式。
+
+项目在（最后更新2007年）[http://sourceforge.net/projects/libshine-fxp](http://sourceforge.net/projects/libshine-fxp)，我们的支持更新放置在github上的Savonet/Liquidsoap中，地址是[https://github.com/savonet/shine](https://github.com/savonet/shine)
+
+需要头和库支持，并需要配置`--enable-libshine`打开编译
+
+参考[libmp3lame]
+
+#### libshine选项 ####
+这个库封装支持如下选项，其对应的` shineenc-XXXXX`形式等效选项列在括号中
+- b (-b)
+	
+	设置CBR码率，单位bits/s ,`shineenc -b` 单位是kilobits/s
+
+
+### libtwolame ###
+双Lame Mp2 编码器封装
+
+编译需要头和库，并且显式打开`--enable-libtwolame`
+
+#### libtwolame选项 ####
+下面是支持的选项，等效的`libtwolame-XXX`选项列在括号中
+
+
+- b (-b)
+
+    设置CBR码率单位bits/s，twolame会扩展为以kilobits/s为单位。默认128k
+- q (-V)
+
+    对VBR设置品质等级，从-50 至50，常见范围为-10-10.越高品质越好。只适用于ffmpeg命令行，接口需要使用`global_quality`.
+- mode (--mode)
+
+    设置结果音频模式，允许如下参数:
+
+    ‘auto’
+
+        基于输入自动适配模式，选项默认值. 
+    ‘stereo’
+
+        立体声 
+    ‘joint_stereo’
+
+        Joint立体声 
+    ‘dual_channel’
+
+        双声道 
+    ‘mono’
+
+        单声道 
+
+- psymodel (--psyc-mode)
+
+    为1设置为psychoacoustic（心理声学）模式，接受-1到4的参数，越大效果越好，默认为3
+- energy_levels (--energy)
+
+    为1设置能量扩展模式，否则为0（默认） (disabled).
+- error_protection (--protect)
+
+    为1设置CRC错误保护，否则为0（默认）
+- copyright (--copyright)
+
+    为1设置MPEG音频复制标志，否则为0（默认）
+- original (--original)
+
+    为1设置MPEG音频原音标志，否则为0（默认）
+
+
+### libvo-aacenc ###
+VisualOn AAC编码器
+
+编译时需要头和库文件，以及利用配置选项`--enable-libvo-aacenc --enable-version3`打开
+
+它类似于[原生FFmpeg AAC],可以处理多个源
+
+#### libvo-aacenc选项 ####
+VisualOn AAC编码器只支持AAC-LC和最多2个声道，而且是CBR
+- b
+
+	码率，单位秒
+
+### libvo-amrwbenc ###
+VisualOn 自适应多速率宽带编码器
+
+编译时需要头和库文件，以及利用配置选项`--enable-libvo-amrwbenc --enable-version3`打开
+
+只支持单声道，通常为16000Hz采样，可以通过设置`strict` 和 `unofficial`来覆盖为更低采样
+
+#### libvo-amrwbenc选项 ####
+
+- b
+
+    设置码率，单位bits/s，只允许下列参数，否则自动选取最接近的有效参数
+
+    ‘6600’
+    ‘8850’
+    ‘12650’
+    ‘14250’
+    ‘15850’
+    ‘18250’
+    ‘19850’
+    ‘23050’
+    ‘23850’
+
+- dtx
+
+    为1允许连续传输 (产生少量噪音)，默认为0
+
+
+### libopus ###
+libopus （Opus交互音频编码） 的封装
+
+编译时需要头和库文件，以及利用配置选项`--enable-libopus `打开
+
+#### libopus ####
+更多选项可以通过opus-tools的 `opusenc`查询，下面仅仅是一些封装中支持的选项（对应的`opusenc-XXXX`选项列在括号中）：
+
+
+- b (bitrate)
+
+    设置码率，单位 bits/s, opusenc 中单位为kilobits/s.
+- vbr (vbr, hard-cbr, and cvbr)
+
+    设置VBR模式，下面为有效参数，其等效于opusenc中对应参数:
+
+    ‘off (hard-cbr)’
+
+        使用CBR码率控制
+    ‘on (vbr)’
+
+        使用合适的动态码率（默认）
+    ‘constrained (cvbr)’
+
+        使用约束变比特率编码
+
+- compression_level (comp)
+
+    设置集编码算法复杂度. 有效参数是0-10整数，0最快，但质量最差，10最慢，质量最好，默认为10
+- frame_duration (framesize)
+
+    设置最大帧尺寸，或者帧对应毫秒时间。有效参数为: 2.5, 5, 10, 20, 40, 60,越小的帧延迟越低，但会降低编码率控制质量，尺寸大于20ms在低码率时有较有趣表现，默认20ms
+- packet_loss (expect-loss)
+
+    设置预期分组丢失率，默认为0
+- application (N.A.)
+
+    设置预期应用类型，下面为有效参数：
+
+    ‘voip’
+
+        有利于提高语音清晰度
+    ‘audio’
+
+        有利于音频输入，默认值
+    ‘lowdelay’
+
+        有利于低延迟模式
+
+- cutoff (N.A.)
+
+    设置截止屏幕，单位Hz。参数必须是: 4000, 6000, 8000, 12000, 或者 20000（分别对应媒体带宽窄带、常规、宽带、超宽带和全频），默认为0，表示禁用cutoff。
