@@ -906,3 +906,124 @@ libopus （Opus交互音频编码） 的封装
 - cutoff (N.A.)
 
     设置截止屏幕，单位Hz。参数必须是: 4000, 6000, 8000, 12000, 或者 20000（分别对应媒体带宽窄带、常规、宽带、超宽带和全频），默认为0，表示禁用cutoff。
+
+### libvorbis ###
+libvorbis编码器封装
+
+编译要求头文件和库，还需要专门用`--enable-libvorbis`以允许使用
+
+#### libvorbis选项 ####
+下面的选项支持libvorbis封装。等效的`oggenc-XXX`选项部分列在括号中。
+
+为了更多的了解`libvorbis`和`oggenc`选项，请参考[http://xiph.org/vorbis/](http://xiph.org/vorbis/)和[http://wiki.xiph.org/Vorbis-tools](http://wiki.xiph.org/Vorbis-tools)，以及`oggenc(1)`手册
+
+
+- b (-b)
+
+    设置ABR模式码率，单位bits/s。oggenc-b单位是kilobits/s.
+- q (-q)
+
+    设置VBR的品质。选项参数是浮点数，范围-1.0至10.0，越大越好，默认‘3.0’.
+
+    该选项只用于ffmpeg命令行工具，要在库中使用则需要`global_quality`
+- cutoff (--advanced-encode-option lowpass_frequency=N)
+
+    设置截止频率，单位Hz，如果为0表示禁用截止频率。`oggenc`等效选项单位是kHz。默认值为‘0’ (表示不设置截止频率)。
+- minrate (-m)
+
+    设置最小码率，单位bits/s. oggenc -m 的单位是kilobits/s.选项只在ABR模式起效
+- maxrate (-M)
+
+    设置最大码率，单位bits/s. oggenc -M 的单位是kilobits/s. 选项只在ABR模式起效
+- iblock (--advanced-encode-option impulse_noisetune=N)
+
+    设置负偏压（底噪偏置），选项参数是浮点数，范围-15.0-0.0。指示编码器花费更多资源用于瞬态，这样可以使得获得更好的瞬态响应。
+
+### libwavpack ###
+wavpack的通过libwavpack的封装
+
+当前只支持无损32位整数样本模式
+
+编译要求头文件和库，还需要专门用`--enable-libwavpack`以允许使用
+
+**注意**libavcoder原生编码器已支持wavpack编码，而不用使用这个扩展编码器了。相关参考[wavpackenc]
+
+#### libwavpack选项 ####
+wavpack命令行工具相应选项都列在括号中:
+
+
+- frame_size (--blocksize)
+
+    默认32768.
+- compression_level
+
+    设置速度与压缩的平衡，允许下面的参数：
+
+    ‘0 (-f)’
+
+        快速模式.
+    ‘1’
+
+        常规模式 (默认) 
+    ‘2 (-h)’
+
+        高质量模式
+    ‘3 (-hh)’
+
+        非常高质量模式
+    ‘4-8 (-hh -xEXTRAPROC)’
+
+        类似‘3’, 但允许扩展处理 enabled.
+
+        ‘4’ 类似于 -x2 ‘8’类似于 -x6.
+
+### wavpack ###
+wavpack无损音频压缩
+
+是libavcodec的原生wavpack编码。这个编码也可以利用`libwavpack`完成，但现在看来完全没有必要。
+
+参看[libwavpack]
+
+#### wavpack选项 ####
+等效的wavpack命令行工具列在括号中
+
+##### wavpack通用选项 #####
+下面是wavpack编码的通用选项，下面只介绍了个别特别用于wavpack的选项，其他更多选项参考[编码选项部分]
+
+
+- frame_size (--blocksize)
+
+    对于这个编码器，参数范围128 至 131072。默认为自动检测（根据采样率和通道数）
+
+    为了了解完整的计算公式，可以看`libavcodec/wavpackenc.c`
+- compression_level (-f, -h, -hh, and -x)
+
+    这个选项同于libwavpack的语法 
+
+##### wavpack私有选项 #####
+
+- joint_stereo (-j)
+
+    设置是否启用联合立体声， 下列值有效:
+
+    ‘on (1)’
+
+        强制mid/side （中置和边）音频编码 
+    ‘off (0)’
+
+        强制left/right音频编码 
+    ‘auto’
+
+        自动检测 
+
+- optimize_mono
+
+    设置是否允许对单声道优化。此选项只对非单声道流有效。 可能值：
+
+    ‘on’
+
+        允许 
+    ‘off’
+
+        禁止 
+
