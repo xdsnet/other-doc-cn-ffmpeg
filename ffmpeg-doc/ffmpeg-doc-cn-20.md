@@ -159,31 +159,31 @@ ffmpeg工具中选项通过特定的`-option value`进行设置，或者通过`A
     当时间戳转换允许时，所有基于时间戳的流（音频、视频和字幕）都会被转换，以保证相对时间不变（时间基准统一）
 - skip_initial_bytes integer (input)
 
-    Set number of bytes to skip before reading header and frames if set to 1. Default is 0.
+    设置为1则读取头和帧前跳过数字节（对解析帧无关），默认为0
 - correct_ts_overflow integer (input)
 
-    Correct single timestamp overflows if set to 1. Default is 1.
+    为1则允许单时间溢出，默认为1
 - flush_packets integer (output)
 
-    Flush the underlying I/O stream after each packet. Default 1 enables it, and has the effect of reducing the latency; 0 disables it and may slightly increase performance in some cases.
+    为1则每个包都清除底层I/O流。默认为1，可以减少延迟，为0则稍微增加延迟，但可以改善某些情况下的性能
 - output_ts_offset offset (output)
 
-    Set the output time offset.
+    设置输出时间偏移
 
-    offset must be a time duration specification, see (ffmpeg-utils)the Time duration section in the ffmpeg-utils(1) manual.
+    `offset`必须是时间持续描述值，参考`ffmpeg-utils`中关于时间持续的章节（在ffmpeg-utils(1)手册中）
 
-    The offset is added by the muxer to the output timestamps.
+    这个便宜量将在混合时加到时间戳上进行输出
 
-    Specifying a positive offset means that the corresponding streams are delayed bt the time duration specified in offset. Default value is 0 (meaning that no offset is applied).
+    指定一个正偏移意味着相应的流延迟bt（basetime 基准）时间，默认值为0，表示没有偏移
 - format_whitelist list (input)
 
-    "," separated List of allowed demuxers. By default all are allowed.
+    "," 分隔的一个列表用于分离器，默认是所有的都允许
 - dump_separator string (input)
 
-    Separator used to separate the fields printed on the command line about the Stream parameters. For example to separate the fields with newlines and indention:
+    在命令行中指定分离器流参数的域，例如用换行和缩进的独立域:
 
     ffprobe -dump_separator "
-                              "  -i ~/videos/matrixbench_mpeg2.mpg
+                              "  -i ~/videos/	matrixbench_mpeg2.mpg
 
 ### 格式流指定（说明） ###
 格式流指定允许选择1个或者多个流匹配特定的属性
