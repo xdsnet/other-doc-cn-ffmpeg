@@ -3,4 +3,4 @@
 
 当然，一些输入或者输出设备还提供一些私有的选项，它们只在特定的组件中有效。
 
-可以做ffmpeg命令行中采用`－option value`来设定某个选项点，或者通过`libavutil／opt.h`中的API设置`AVFormatContext`的显式值来进行设置。
+可以做ffmpeg命令行中采用`－option value`来设定某个选项点，或者通过`libavutil／opt.h`中的API设置，或者通过`AVFormatContext`的显式值来进行设置。
