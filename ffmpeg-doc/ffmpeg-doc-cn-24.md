@@ -709,11 +709,158 @@ Secure Real-time Transport Protocol——SRTP，安全实时传输协议
 	提取段的结束位置偏移，单位byte（字节）
 
 例子：
-从DVD的VOB文件中提取章节（节的开始和结束区块数乘以2048）
+
+- 从DVD的VOB文件中提取章节（节的开始和结束区块数乘以2048）
 
     subfile,,start,153391104,end,268142592,,:/media/dvd/VIDEO_TS/VTS_08_1.VOB
 
-播放直接从TAR打包中播放AVI文件：
+- 播放直接从TAR打包中播放AVI文件：
 
     subfile,,start,183241728,end,366490624,,:archive.tar
 
+### tcp ###
+Transmission Control Protocol——TCP，传输控制协议
+
+请求的TCP url语法为：
+
+    tcp://hostname:port[?options]
+其中`options`是由“&”分隔的`key=val`对选项列表
+
+允许下面一些选项：
+
+- listen=1|0
+
+	是否对传入连接侦听，默认为0，表示不侦听
+- timeout=microsenconds
+
+	设置超时错误抛出时间，单位毫秒
+	这个选项仅工作在读模式：如果超过设置时间周期没有获取到数据则抛出错误
+- listen_timeout=milliseconds
+
+	设置侦听超时，单位毫秒
+下面的例子展示了如何在ffmpeg中应用TCP连接，以及如何用ffplay播放一个TCP内容
+
+	ffmpeg -i input -f format tcp://hostname:port?listen
+	ffplay tcp://hostname:port	
+### tls ###
+Transport Layer Security (TLS) / Secure Sockets Layer (SSL) 
+
+对于TLS/SSL的 URL语法是：
+
+    tls://hostname:port[?options]
+下面是可以在命令行中设置的选项（或者通过`AVOptionS`在编程时设置）
+
+- ca_file, cafile=filename
+
+    设置含证书颁发机构(CA)作为受信任的根证书的文件。如果连接的TLS库包含一个默认而不需要指定即可工作的值，但不是所有库和配置都有默认值。文件必须是OpenSSL PEM格式
+- tls_verify=1|0
+
+    如果允许，则试图对等验证。**注意**如果使用OpenSSL，这是目前唯一支持通过的CA根证书签署数据库对等验证，但它在我们试图连接到一个主机时并不验证根证书匹配（GnuTLS验证了主机名）。
+    
+    默认禁用，因为大多时候它需要调用者提供一个CA数据库
+- cert_file, cert=filename
+
+   设置包含一个用于处理同行连接的证书。(当操作服务器,在侦听模式中,这是经常需要证书的,而客户端证书仅在某些设置中授权。)
+- key_file, key=filename
+
+    设置包含证书的私钥文件
+- listen=1|0
+
+    如果允许，则在提供的端口上监听连接，并假设当前为服务器角色，而不是客户端角色
+
+命令行中的例子:
+
+- 根据输入流创建一个TLS/SSL服务
+
+	ffmpeg -i input -f format tls://hostname:port?listen&cert=server.crt&key=server.key
+
+- 播放一个TLS/SSL:
+
+	ffplay tls://hostname:port
+### UDP ###
+User Datagram Protocol——UDP，用户数据报协议
+
+请求UDP URL的语法：
+
+	udp://hostname:port[?options]
+
+这里`options`是由“&”分隔的`key=val`选项列表
+
+在启用线程模式的系统，一个循环缓存被用于存储传入的数据，它可以减少数据由于UDP套接字（socket）缓冲区溢出的损失。`fifo_size` 和 `overrun_nonfatal`选项就是关于这个缓冲区设置的。
+
+下面列出支持的选项:
+
+- buffer_size=size
+
+    设置UDP 最大socket 缓冲区大小，单位bytes,它用于设置接收或者发生的缓冲区大小，其取决于套接字的需求，默认为64KB。也可以参看`fifo_size`
+- localport=port
+
+    覆盖本地UDP端口来绑定
+- localaddr=addr
+
+    选择本地IP地址，这是对需要设置多播或者主机有多个IP时是必要的。通过设置用户可以选择通过那个IP地址作为发送接口
+- pkt_size=size
+
+    以字节为单位设置UDP包大小
+- reuse=1|0
+
+    显式设置允许或者不允许UDP套接字(socket)
+- ttl=ttl
+
+    设置time to live（TTL）值 (仅对多播).
+- connect=1|0
+
+    如果设置为1则利用 connect()初始化UDP套接字。在这种情况下目的地址不能由后面的`ff_udp_set_remote_url`改变，如果目的地址在开始时是未知的，这个选项可以允许指定`ff_udp_set_remote_url`，它允许根据`getsockname`为包找到源地址，如果目的地址不可到达则通过` AVERROR(ECONNREFUSED) `返回。它可以保证只从指定的地址/端口进行数据获取
+- sources=address[,address]
+
+    只从多播组的一个指定发送IP地址获取数据包
+- block=address[,address]
+
+    忽略多播组中指定IP地址的包
+- fifo_size=units
+
+    设置UDP获取循环缓冲区大小，单位为188字节的包个数。如果没有指定，默认7*4096.
+- overrun_nonfatal=1|0
+
+    生存的UDP接收循环缓冲区溢出，默认为0.
+- timeout=microseconds
+
+    设置抛出超时错误的时限，单位毫秒
+
+    这个选项仅与读模式相关：如果超过设置的时间没有获取到数据则抛出超时错误。
+- broadcast=1|0
+
+    显式地允许或不允许UDP广播
+
+    **注意**,在网络广播风暴的保护环境可能无法正常工作
+#### UDP例子 ####
+
+- 使用ffmpeg输出流到远程UDP端点
+
+    ffmpeg -i input -f format udp://hostname:port
+
+- 使用ffmpeg，流式输出到UDP端点，UDP包大小是188字节，使用一个大的输入缓冲区:
+
+    ffmpeg -i input -f mpegts udp://hostname:port?pkt_size=188&buffer_size=65535
+
+- 使用FFmepg获取基于UDP传来的远程端点数据:
+
+    ffmpeg -i udp://[multicast-address]:port ...
+
+### UNIX ###
+Unix本地socket（套接字）
+
+请求Unix socket的URL语法为：
+
+	unix://filepath
+
+下面的参数允许在命令行设置（通过`AVOptions`在编码时设置）:
+
+- timeout
+
+    以ms设置超时. 
+- listen
+
+    以侦听模式建立一个Unix socket
+
+  
