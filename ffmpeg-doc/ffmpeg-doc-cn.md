@@ -32,7 +32,7 @@
 - [29 放缩选项](./ffmpeg-doc-cn-29.md)
 - [30 滤镜入门](./ffmpeg-doc-cn-30.md)
 - [31 graph2dot](./ffmpeg-doc-cn-31.md)
-- [32 滤镜链图描述](./ffmpeg-doc-cn-32.md)
+- [32 滤镜链图介绍](./ffmpeg-doc-cn-32.md)
 - [33 时间线编辑](./ffmpeg-doc-cn-33.md)
 - [34 音频滤镜](./ffmpeg-doc-cn-34.md)
 - [35 音频源](./ffmpeg-doc-cn-35.md)
