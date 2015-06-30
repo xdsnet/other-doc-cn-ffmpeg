@@ -5,106 +5,106 @@
 
 - sws_flags
 
-    Set the scaler flags. This is also used to set the scaling algorithm. Only a single algorithm should be selected.
+    设置放缩标志。也用于设置放缩算法，仅有一个算法能被选中。
 
-    It accepts the following values:
+    接受如下值:
 
     - ‘fast_bilinear’
 
-        Select fast bilinear scaling algorithm.
+        快速双线性缩放算法
     - ‘bilinear’
 
-        Select bilinear scaling algorithm.
+        双线性缩放算法
     - ‘bicubic’
 
-        Select bicubic scaling algorithm.
+        双三次的缩放算法.
     - ‘experimental’
 
-        Select experimental scaling algorithm.
+        实验缩放算法.
     - ‘neighbor’
 
-        Select nearest neighbor rescaling algorithm.
+        近邻取样缩放算法
     - ‘area’
 
-        Select averaging area rescaling algorithm.
+        平均区域尺度缩放算法.
     - ‘bicublin’
 
-        Select bicubic scaling algorithm for the luma component, bilinear for chroma components.
+        对亮度采用双三次的缩放算法，对色度采用双线性缩放算法
     - ‘gauss’
 
-        Select Gaussian rescaling algorithm.
+        高斯缩放算法
     - ‘sinc’
 
-        Select sinc rescaling algorithm.
+        辛格缩放算法
     - ‘lanczos’
 
-        Select lanczos rescaling algorithm.
+        兰索斯分块缩放算法
     - ‘spline’
 
-        Select natural bicubic spline rescaling algorithm.
+        自然双三次的样条插值缩放算法
     - ‘print_info’
 
-        Enable printing/debug logging.
+        允许输出/调试日志
     - ‘accurate_rnd’
 
-        Enable accurate rounding.
+        允许精度舍入
     - ‘full_chroma_int’
 
-        Enable full chroma interpolation.
+        允许完整的色度插值
     - ‘full_chroma_inp’
 
-        Select full chroma input.
+        选择完整的浓度输入
     - ‘bitexact’
 
-        Enable bitexact output. 
+        允许bitexact（位精确算法 ）输出 
 
 - srcw
 
-    Set source width.
+    设置源宽度
 - srch
 
-    Set source height.
+    设置源高度
 - dstw
 
-    Set destination width.
+    设置目标宽度
 - dsth
 
-    Set destination height.
+    设置目标高度
 - src_format
 
-    Set source pixel format (must be expressed as an integer).
+    设置源像素格式 (必须表示为整数).
 - dst_format
 
-    Set destination pixel format (must be expressed as an integer).
+    设置目标像素格式 (必须表示为整数).
 - src_range
 
-    Select source range.
+    选择源区域范围
 - dst_range
 
-    Select destination range.
+    选择目标区域范围
 - param0, param1
 
-    Set scaling algorithm parameters. The specified values are specific of some scaling algorithms and ignored by others. The specified values are floating point number values.
+    设置缩放算法参数。指定的值是特定缩放算法适用的可能被别的算法忽略。值为浮点数
 - sws_dither
 
-    Set the dithering algorithm. Accepts one of the following values. Default value is ‘auto’.
+    设置抖动算法。接收如下值，默认为 ‘auto’.
 
     - ‘auto’
 
-        automatic choice
+        自动选择
     - ‘none’
 
-        no dithering
+        没有抖动
     - ‘bayer’
 
-        bayer dither
+        bayer抖动
     - ‘ed’
 
-        error diffusion dither
+        error diffusion（误差扩散）抖动
     - ‘a_dither’
 
-        arithmetic dither, based using addition
+        arithmetic（算术）抖动,基于加法
     - ‘x_dither’
 
-        arithmetic dither, based using xor (more random/less apparent patterning that a_dither).
+        arithmetic（算术）抖动, 基于xor（异或） (比`a_dither`有更多的随机性/更少的模式化).
 
