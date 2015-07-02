@@ -116,6 +116,164 @@ Linux framebuffer是独立于硬件的计算机屏幕显示图形的抽象层，
     ffmpeg -re -i INPUT -vcodec rawvideo -pix_fmt bgra -f fbdev /dev/fb0
 更多请参考[http://linux-fbdev.sourceforge.net/](http://linux-fbdev.sourceforge.net/)的`fbset(1)`
 
+### opengl ###
+OpenGL输出设备
+
+编译允许配置选项` --enable-opengl`
+
+这个输出设备允许渲染输出OpenGL内容。内容可以是由程序提供或者默认创建的的SDL窗口。
+
+当设备呈现到外部环境时，程序必须实现处理如下的消息：
+- AV_DEV_TO_APP_CREATE_WINDOW_BUFFER - 在当前线程创建OpenGL 环境
+- AV_DEV_TO_APP_PREPARE_WINDOW_BUFFER - OpenGL当前上下文（环境） 
+- AV_DEV_TO_APP_DISPLAY_WINDOW_BUFFER - 交换缓冲区
+- AV_DEV_TO_APP_DESTROY_WINDOW_BUFFER - 分解/摧毁OpenGL环境
+- AV_APP_TO_DEV_WINDOW_SIZE - 告知相关设备（更新信息，程序向设备的） 
+
+#### opengl选项 ####
+
+- background
+
+    设置背景颜色，默认为`Black` (黑色) 
+- no_window
+
+    非0表示禁止默认的SDL窗口。程序必须提供OpenGL环境（上下文）同时设置 `window_size_cb`与`window_swap_buffers_cb`两个回调
+- window_title
+
+    设置SDL窗口标题,如果没有指定将以指代输出设备的文件名作为默认。当`no_window`设置时会被忽略。 
+- window_size
+
+    设置首选窗口尺寸，可以是形如`widthxheight`的字符串参数或者视频尺寸短语。如果不指定则默认以输入视频尺寸进行等比例缩放（让高或者宽恰好等于窗口最大可能且完全展示的尺寸）。如果`no_window`没有设置可用
+
+#### opengl例子 ####
+使用OpenGL渲染播放到SDL窗口
+
+    ffmpeg  -i INPUT -f opengl "window title"
+### oss ###
+OSS（open Sound System）输出设备
+
+### pulse ###
+PulseAudio输出设备
+
+编译选项开关`--enable-libpulse`
+
+更多关于PulseAudio信息参考[http://www.pulseaudio.org](http://www.pulseaudio.org)
+
+#### pulse选项 ####
+- server
+
+    以IP地址描述的用于连接到的PulseAudio服务器，如果不提供则为默认服务器（其他地方进行配置）
+- name
+
+    将显示在活动客户端的应用名，默认为`LIBAVFORMAT_IDENT`
+- stream_name
+
+    显示为活动流的流名称，默认为指定的输出名
+- device
+
+    指定设备。如果不指定则采用默认设备。可以用命令`pactl`列出输出设备
+- buffer_size
+- buffer_duration
+
+    控制缓冲尺寸和持续时间。一个小的缓冲区提供了更多的控制，当需要更频繁的更新。
+
+    buffer_size是按字节指定  
+    buffer_duration以milliseconds为单位指定
+
+    当两个都被指定时，使用更大的值(持续时间将按使用流的参数重新计算——即按流参数可以把`buffer_size`转换成`buffer_duration`来比较). 如果设置为0 (默认值), 将采用默认的PulseAudio持续时间，即2秒.
+- prebuf
+
+    指定pre-buffering尺寸，单位字节。它指定服务器开始播放前至少缓冲的量。默认会同于`buffer_size` 或`buffer_duration`（中大的一个）
+- minreq
+
+    指定最小请求尺寸，单位字节。即如果数据量达到这里指定的值，就可向服务器发送请求，而不是达到缓冲区填满。它不被建议设置，由服务器来初始化这个值更明智
+#### pulse例子 ####
+在默认服务器的默认设备上播放文件
+
+    ffmpeg  -i INPUT -f pulse "stream name"
+
+### sdl ###
+SDL（Simple DirectMedia Layer）输出设备
+
+其可以允许在SDL窗口上显示视频流。每个进程仅能创建一个SDL窗口所以你的程序实例只有一个SDL设备输出。
+
+编译需要`libsdl`库。
+
+关于SDL的更多信息参考`http://www.libsdl.org/`
+
+#### sdl选项 ####
+- window_title
+
+    设置SDL窗口标题，如果没有指定，则用输出文件名
+- icon_title
+
+    置图标化SDL窗口的名称，如果没有指定则采用和`window_title`
+- window_size
+
+    设置SDL窗口尺寸，可以是`widthxheight`格式，也可以是视频尺寸短语。如果没有指定则以输入文件的等比例填充放大最大可能值（某边和屏幕窗口边重合）
+- window_fullscreen
+
+    非0则设置全屏模式，默认为0
+
+#### sdl交换命令 ####
+- 窗口创建的设备可以通过下面的交互式控制命令；
+
+    Quit the device immediately.
+
+#### sdl例子 ####
+下面强制以`qcif`尺寸标准中SDL窗口上显示图像
+
+### andio ###
+sndio 音频输出设备
+### xv ### 
+XV（XVideo）输出设备
+
+这个X环境设备允许在Xwindow系统的一个窗口上显示视频流
+
+#### xv选项 ####
+- display_name
+
+    指定用在显示的硬件名，它决定了显示和通信
+
+    显示名或者`DISPLAY`环境变量值是一个格式字符串`hostname[:number[.screen_number]]`
+
+    `hostname`是指定了主机的物理连接，`number`指明了在主机上显示服务索引号，`screen_number`指定了服务上的那个屏幕
+
+    如果不指定，则采用`DISPLAY`环境变量值
+
+    例如：`dual-headed:0.1`指定了是`dual-headed`主机上的0号显示服务的1号屏幕
+
+    通过X11介绍了解更多关于显示名的格式信息
+- window_id
+
+    为非0值表示不创建新窗口而是使用已有的`window_id`窗口（如果该`window_id`窗口已经存在）。默认为0表示创建自己的窗口。
+- window_size
+
+    设置窗口尺寸，参数可以是`widthxheight`或者视频尺寸短语。如果不指定，则默认以输入视频尺寸，当`window_id`被设置时忽略
+- window_x
+- window_y
+
+    设置创建窗口的坐标偏移。默认都为0.它可能被窗口管理器忽略。当`window_id`被设置后被忽略。
+- window_title
+
+    设置窗口标题，如果不设置默认以输出文件名作为值，当`window_id`被设置后被忽略
+
+#### xv例子 ####
+- 同时解码、显示和编码输入
+
+    ffmpeg -i INPUT OUTPUT -f xv display
+- 解码显示输入视频到多个X11窗口:
+
+    ffmpeg -i INPUT -f xv normal -vf negate -f xv negated
+
+
+
+
+
+
+
+
+
 
 
 
