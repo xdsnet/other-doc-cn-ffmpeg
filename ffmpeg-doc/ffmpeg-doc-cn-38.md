@@ -9,7 +9,7 @@
 接受如下参数：
 - video_size
 
-    指定视频尺寸，(同时指定width 和 height)。语法同于`ffmpeg-utils`手册中的[视频尺寸](ffmpeg-doc-cn-07.md#视频尺寸（分辨率）)章节。
+    指定视频尺寸，(同时指定width 和 height)。语法同于`ffmpeg-utils`手册中的[视频尺寸](ffmpeg-doc-cn-07.md#视频尺寸分辨率)章节。
 - width
 
     输入视频宽
@@ -75,7 +75,7 @@
     设置细胞自动发生规则，是0-255间数，默认110
 - size, s
 
-    设置输出视频尺寸，语法同于`ffmpeg-utils`手册中的[视频尺寸](ffmpeg-doc-cn-07.md#视频尺寸（分辨率）)章节。
+    设置输出视频尺寸，语法同于`ffmpeg-utils`手册中的[视频尺寸](ffmpeg-doc-cn-07.md#视频尺寸分辨率)章节。
 
     如果`filename`或者`pattern`指定了，则尺寸默认为初始化行的宽度`width`，高为`width * PHI`
 
@@ -159,7 +159,7 @@
     设置帧率，可以是表达式和每秒帧数，默认为25
 - size, s
 
-    设置帧尺寸，语法同于`ffmpeg-utils`手册中的[视频尺寸](ffmpeg-doc-cn-07.md#视频尺寸（分辨率）)章节. 默认"640x480".
+    设置帧尺寸，语法同于`ffmpeg-utils`手册中的[视频尺寸](ffmpeg-doc-cn-07.md#视频尺寸分辨率)章节. 默认"640x480".
 - start_scale
 
     设置初始化放大值，默认为3.0.
@@ -213,7 +213,7 @@
 编译需要`frei0r`头以及配置项`--enable-frei0r`，接受如下参数：
 - size
 
-    生成视频大小。语法同于`ffmpeg-utils`手册中的[视频尺寸](ffmpeg-doc-cn-07.md#视频尺寸（分辨率）)章节.
+    生成视频大小。语法同于`ffmpeg-utils`手册中的[视频尺寸](ffmpeg-doc-cn-07.md#视频尺寸分辨率)章节.
 - framerate
 
     设置帧率，值为数字字符串，或者`num/den`形式字符串或者帧率短语
@@ -263,7 +263,7 @@
     默认为"S23/B3",它是原始的Conway’s 游戏规则。如果它周围有2或者3个细胞将新生细胞，否则将死亡细胞
 - size, s
 
-    设置输出视频分辨率，语法同于`ffmpeg-utils`手册中的[视频尺寸](ffmpeg-doc-cn-07.md#视频尺寸（分辨率）)章节
+    设置输出视频分辨率，语法同于`ffmpeg-utils`手册中的[视频尺寸](ffmpeg-doc-cn-07.md#视频尺寸分辨率)章节
 
     当`filename`被设定，则默认会采用输入文件的最大行宽。如果设置了这个值则需与输入文件相匹配。
 
@@ -318,7 +318,7 @@
     指定Hald CLUT的层次。仅在`haldclutsrc`有效S。`level`中的`N`用于生成一个`N*N*N`像素为单位矩阵用于三维查找表。每个组件都是编码在1 /(N * N)范围内。
 - size, s
 
-    指定源视频尺寸。语法同于`ffmpeg-utils`手册中的[视频尺寸](ffmpeg-doc-cn-07.md#视频尺寸（分辨率）)章节，默认值为`320x240`.
+    指定源视频尺寸。语法同于`ffmpeg-utils`手册中的[视频尺寸](ffmpeg-doc-cn-07.md#视频尺寸分辨率)章节，默认值为`320x240`.
 
     这个选项在`haldclutsrc`中无效
 - rate, r
