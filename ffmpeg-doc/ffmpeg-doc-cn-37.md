@@ -190,7 +190,7 @@
     在结束流后继续应用底帧。值为0表明不继续应用底帧，默认为1.选项只用于`blend`滤镜 
 
 	
-#### blend，tblend例子 ####	
+#### blend，tblend例子 ####
 - 在前10秒应显示底帧:
 
     blend=all_expr='A*(if(gte(T,10),1,T/10))+B*(1-(if(gte(T,10),1,T/10)))'
@@ -1066,30 +1066,30 @@ RGB颜色键控
     默认为"black".
 - fontcolor_expr
 
-    String which is expanded the same way as text to obtain dynamic fontcolor value. By default this option has empty value and is not processed. When this option is set, it overrides fontcolor option.
+    用于计算获得动态`fontcolor`值的字符串表达式。默认为控，即不处理。当被设置时将把计算结果覆盖`fontcolor`选项
 - font
 
-    The font family to be used for drawing text. By default Sans.
+    设置选用的字体，默认为Sans.
 - fontfile
 
-    The font file to be used for drawing text. The path must be included. This parameter is mandatory if the fontconfig support is disabled.
+    指定字体文件。信息中包括路径。这个参数在`fontconfig`被禁用时必须设置
 - draw
 
-    This option does not exist, please see the timeline system
+    这个选项已不存在，参考`timeline`系统（时间线）
 - alpha
 
-    Draw the text applying alpha blending. The value can be either a number between 0.0 and 1.0 The expression accepts the same variables x, y do. The default value is 1. Please see fontcolor_expr
+    设置绘制的文本透明度，值范围为0.0-1.0。而且还可以接受x和y的变量。请参阅`fontcolor_expr`
 - fontsize
 
-    The font size to be used for drawing text. The default value of fontsize is 16.
+    设置字体大小，默认为16 drawing text. The default value of fontsize is 16.
 - text_shaping
 
-    If set to 1, attempt to shape the text (for example, reverse the order of right-to-left text and join Arabic characters) before drawing it. Otherwise, just draw the text exactly as given. By default 1 (if supported).
+    如果设置为1，则试图整理文本排列顺序（例如阿拉伯语是按从右到左排序），否则按给定的顺序从左到右排，默认为1
 - ft_load_flags
 
-    The flags to be used for loading the fonts.
+    这些标志用于加载字体
 
-    The flags map the corresponding flags supported by libfreetype, and are a combination of the following values:
+    这些标志对应于`libfreetype`支持的标志，并结合下面的值:
 
     default
     no_scale
@@ -1107,113 +1107,1032 @@ RGB颜色键控
     linear_design
     no_autohint
 
-    Default value is "default".
+    默认值为 "default".
 
-    For more information consult the documentation for the FT_LOAD_* libfreetype flags.
+    要了解更多信息，请参考文档中`libfreetype`标志的`FT_LOAD_*` 部分。
 - shadowcolor
 
-    The color to be used for drawing a shadow behind the drawn text. For the syntax of this option, check the "Color" section in the ffmpeg-utils manual.
+    阴影颜色。语法详见[颜色/color](ffmpeg-doc-cn-07.md#颜色color)中的介绍。
 
-    The default value of shadowcolor is "black".
+    默认为"black".
 - shadowx
 - shadowy
 
-    The x and y offsets for the text shadow position with respect to the position of the text. They can be either positive or negative values. The default value for both is "0".
+    这里的x和y是字阴影对于字本体的偏移。可以是正数或者负数（决定了偏移方向），默认为0
 - start_number
 
-    The starting frame number for the n/frame_num variable. The default value is "0".
+    起始帧数，对于`n/frame_num`变量。 默认为0
 - tabsize
 
-    The size in number of spaces to use for rendering the tab. Default value is 4.
+    用于呈现的区域数量空间大小，默认为4
 - timecode
 
-    Set the initial timecode representation in "hh:mm:ss[:;.]ff" format. It can be used with or without text parameter. timecode_rate option must be specified.
+    设置初始的时间码，以"hh:mm:ss[:;.]ff"格式。它被用于有或者没有`text`参数，此时`timecode_rate`必须被指定
 - timecode_rate, rate, r
 
-    Set the timecode frame rate (timecode only).
+    设置时间码`timecode`的帧率（在`timecode`指定时）
 - text
 
-    The text string to be drawn. The text must be a sequence of UTF-8 encoded characters. This parameter is mandatory if no file is specified with the parameter textfile.
+    要被绘制的文本。文本必须采用`UTF-8`编码字符。如果没有指定`textfile`则这个选项必须指定
 - textfile
 
-    A text file containing text to be drawn. The text must be a sequence of UTF-8 encoded characters.
+    一个文本文件，其内容将被绘制。文本必须是一个`UTF-8`文本序列
 
-    This parameter is mandatory if no text string is specified with the parameter text.
+    如果没有指定`text`选项，则必须设定。
 
-    If both text and textfile are specified, an error is thrown.
+    如果同时设定了`text`和`textfile`将引发一个错误
 - reload
 
-    If set to 1, the textfile will be reloaded before each frame. Be sure to update it atomically, or it may be read partially, or even fail.
+    如果设置为1，`textfile`将在每帧前加载。一定要自动更新它，或者它可能是会被读取的或者失败
 - x
 - y
 
-    The expressions which specify the offsets where text will be drawn within the video frame. They are relative to the top/left border of the output image.
+    指定文本绘制区域的坐标偏移。是相对于图像顶/左边的值
 
-    The default value of x and y is "0".
+    默认均为"0".
 
-    See below for the list of accepted constants and functions. 
+    下面是接受的常量和函数 
 
-The parameters for x and y are expressions containing the following constants and functions:
+对于x和y是表达式时，它们接受下面的常量和函数:
 
 - dar
 
-    input display aspect ratio, it is the same as (w / h) * sar
+    输入显示接受的长宽比，它等于 (w / h) * sar
 - hsub
 - vsub
 
-    horizontal and vertical chroma subsample values. For example for the pixel format "yuv422p" hsub is 2 and vsub is 1.
+    水平和垂直色度分量值。例如对于"yuv422p"格式像素，`hsub`为2，`vsub`为1
 - line_h, lh
 
-    the height of each text line
+    文本行高
 - main_h, h, H
 
-    the input height
+    输入的高
 - main_w, w, W
 
-    the input width
+    输入的宽
 - max_glyph_a, ascent
 
-    the maximum distance from the baseline to the highest/upper grid coordinate used to place a glyph outline point, for all the rendered glyphs. It is a positive value, due to the grid’s orientation with the Y axis upwards.
+    从基线到最高/上字形轮廓高点（所有内容的最高点）的最大距离。必须是一个正值，因为网格与Y轴方向关系使然
 - max_glyph_d, descent
 
-    the maximum distance from the baseline to the lowest grid coordinate used to place a glyph outline point, for all the rendered glyphs. This is a negative value, due to the grid’s orientation, with the Y axis upwards.
+    从基线到最低/下字形轮廓高点（所有内容的最高点）的最大距离。必须是一个负值，因为网格与Y轴方向关系使然
 - max_glyph_h
 
-    maximum glyph height, that is the maximum height for all the glyphs contained in the rendered text, it is equivalent to ascent - descent.
+    最大字形高度，限定了所有单个字的高度，如果设置值小于实际值，则输出可能覆盖到其他行上
 - max_glyph_w
 
-    maximum glyph width, that is the maximum width for all the glyphs contained in the rendered text
+    最大字形宽度，限定了所单个字显示的宽度，如果设置值小于实际值，则发生字重叠
 - n
 
-    the number of input frame, starting from 0
+    输入帧序数，从0计数
 - rand(min, max)
 
-    return a random number included between min and max
+    返回一个min和max间的随机数
 - sar
 
-    The input sample aspect ratio.
+    输入样本点的长宽比
 - t
 
-    timestamp expressed in seconds, NAN if the input timestamp is unknown
+    以秒计的时间戳。如果无效则为`NAN`
 - text_h, th
 
-    the height of the rendered text
+    渲染文本的高
 - text_w, tw
 
-    the width of the rendered text
+    渲染文本的宽
 - x
 - y
 
-    the x and y offset coordinates where the text is drawn.
+    文本的x和y坐标。
 
-    These parameters allow the x and y expressions to refer each other, so you can for example specify y=x/dar. 
+    所有参数都允许`x`和`y`被引用，例如`y=x/dar` 
 
 #### 文本扩展 ####
+如果`expansion`设置为`strftime`，则滤镜会接受`strftime()`序列提供的文本并进行相应扩展。检查`strftime（）`的文档。这个特性现在是弃用的。
+
+如果`expansion`设置为`none`，则文本都是直接打印文本（即直接以文本内容不扩展进行输出）
+
+如果`expansion`设置为`normal`（它是默认值），将应用下面的扩展规则。
+
+序列形式`${...}`的内容将被扩展。大括号之间的文本是一个函数的名字，可能紧随其后是一些用`：`隔开的参数。如果包含特殊字符或分隔符（这里是`:`或者`}`），它们应该被转义。
+
+**注意**对于在作为滤镜参数的`text`选项值，或者滤镜链图中的参数（多个滤镜连接时）以及是在`shell`环境中使用，则可能需要4层转义。使用文本文件可以避免这些问题（减少转义的使用）。
+
+下面是有效的函数（功能）：
+
+- expr, e
+
+    计算结果的表达式
+
+    它必须有一个参数来计算，接受计算x和y相同的常数和函数。**注意**并不是所有的常数都适合，例如`text_w`和`text_h`在此时还是一个未定义值（因为这两个值依赖于这里计算结果）
+- expr_int_format, eif
+
+    把表达式求值和输出格式化为整数
+
+    第一个参数是用于计算的表达式，就像是`expr`函数（包括了变量/常量等），第二个参数指定输出格式，允许‘x’, ‘X’, ‘d’ 和 ‘u’，其意义同于`printf`函数（C语言）中的意义。第三个参数是可选的，用来设置格式化为固定位数，左边可以用0来填补。
+- gmtime
+
+    设置滤镜运行时间，是UTC时间。它接受一个`strftime()`格式字符串参数
+- localtime
+
+    滤镜运行的本地时间，它以本地时区表示的时间。它接受一个`strftime()`格式字符串参数
+- metadata
+
+    帧的元数据。它必须有一个指定元数据键的参数
+- n, frame_num
+
+    帧序数，从0开始计数
+- pict_type
+
+    一个字符描述当前图片类型
+- pts
+
+    当前帧的时间戳。它可以有2个参数
+
+    第一个参数是时间戳格式，默认为`flt`是秒格式，其有微秒级精度；`hms`则代表`[-]HH:MM:SS.mmm`格式时间戳表示，其也有毫秒精度。
+
+    第二个参数是添加到时间戳的偏移量
 
 #### drawtext例子 ####
+- 以FreeSerif字体绘制 "Test Text" ，其他可选参数均为默认值
+
+    drawtext="fontfile=/usr/share/fonts/truetype/freefont/FreeSerif.ttf: text='Test Text'"
+-  以FreeSerif字体，24大小在x=100 和y=50位置 绘制 ’Test Text’ ，字体采用黄色且还有红色边缘，字体和衬底军为20%透明度
+
+    drawtext="fontfile=/usr/share/fonts/truetype/freefont/FreeSerif.ttf: text='Test Text':\
+              x=100: y=50: fontsize=24: fontcolor=yellow@0.2: box=1: boxcolor=red@0.2"
+
+    **注意**如果不是参数列表则不一定采用双引号来标识范围
+- 把字显示在视频中间（计算位置）
+
+    drawtext="fontsize=30:fontfile=FreeSerif.ttf:text='hello world':x=(w-text_w)/2:y=(h-text_h-line_h)/2"
+- 在视频帧的最后一排从右向左滑动显示一个文本行。假设文件LONG_LINE仅包含一行且没有换行。
+
+	drawtext="fontsize=15:fontfile=FreeSerif.ttf:text=LONG_LINE:y=h-line_h:x=-50*t"
+
+- 从下向上显示文本行内容
+
+    drawtext="fontsize=20:fontfile=FreeSerif.ttf:textfile=CREDITS:y=h-20*t"
+- 在视频中间以绿色绘制单独的字符"g"。文本基线放置在视频半高位置
+
+    drawtext="fontsize=60:fontfile=FreeSerif.ttf:fontcolor=green:text=g:x=(w-max_glyph_w)/2:y=h/2-ascent"
+-  每3秒显示文本1秒
+
+    drawtext="fontfile=FreeSerif.ttf:fontcolor=white:x=100:y=x/dar:enable=lt(mod(t\,3)\,1):text='blink'"
+- 采用`fontconfig`来设置字体。**注意**冒号需要转义
+
+    drawtext='fontfile=Linux Libertine O-40\:style=Semibold:text=FFmpeg'
+- 输出实时编码日期（参考`strftime(3)`）:
+
+    drawtext='fontfile=FreeSans.ttf:text=%{localtime\:%a %b %d %Y}'
+- 以淡入淡出显示文本 (显示/消失）
+
+    #!/bin/sh
+    DS=1.0 # display start
+    DE=10.0 # display end
+    FID=1.5 # fade in duration
+    FOD=5 # fade out duration
+    ffplay -f lavfi "color,drawtext=text=TEST:fontsize=50:fontfile=FreeSerif.ttf:fontcolor_expr=ff0000%{eif\\\\: clip(255*(1*between(t\\, $DS + $FID\\, $DE - $FOD) + ((t - $DS)/$FID)*between(t\\, $DS\\, $DS + $FID) + (-(t - $DE)/$FOD)*between(t\\, $DE - $FOD\\, $DE) )\\, 0\\, 255) \\\\: x\\\\: 2 }"
+
+关于`libfreetype`, 参考[http://www.freetype.org/](http://www.freetype.org/)
+
+对于`fontconfig`,参考[http://freedesktop.org/software/fontconfig/fontconfig-user.html](http://freedesktop.org/software/fontconfig/fontconfig-user.html).
+
+对于`libfribidi`, 参考[http://fribidi.org/](http://fribidi.org/). 
+
+### edgedetect ###
+检测边缘。滤镜采用精明边缘检测(Canny Edge Detection)算法
+
+接受下面的选项：
+
+- low
+- high
+
+    设置检测算法边缘探测的低和高的阀值。
+
+    `high`阀值选择`强有力`的边缘像素，然后通过8向邻接检测`软弱`到`low`阀值，从而标注出边缘
+
+    `low`和`high`的值范围为[0,1]，且`low`<=`higt`
+
+    默认`low`为20/255, `high`为50/255.
+- mode
+
+    定义绘制(边缘)模式
+
+    ‘wires’
+
+        绘制一个 white/gray间隔线在黑背景上
+    ‘colormix’
+
+        混合颜色创建一个油漆/卡通效果 
+
+    默认为 wires. 
+
+#### edgedetect例子 ####
+- 采用了自定义滞后阀值的标准边缘检测
+
+	edgedetect=low=0.1:high=0.4
+- 绘画效果没有阈值（因为high设置为0，low必须小于等于high则只能为0了）
+
+	edgedetect=mode=colormix:high=0
+
+### eq ###
+设置亮度、对比度、饱和度和近似伽马(gamma)调整
+
+滤镜支持下面选项：
+
+- contrast
+
+    设置contrast表达式，值必须是一个-2.0-2.0间的浮点数，默认为0
+- brightness
+
+    设置brightness表达式.值必须是一个-1.0-1.0间的浮点数，默认为0
+- saturation
+
+    设置saturation表达式. 值必须是一个0-3.0间的浮点数，默认为1
+- gamma
+
+    设置gamma表达式 ，值必须是一个0.1-10.0间的浮点数，默认为1
+- gamma_r
+
+    设置gamma表达式，对红色. 值必须是一个0.1-10.0间的浮点数，默认为1
+- gamma_g
+
+    设置gamma表达式，对绿色. 值必须是一个0.1-10.0间的浮点数，默认为1
+- gamma_b
+
+    设置gamma表达式，对蓝色. 值必须是一个0.1-10.0间的浮点数，默认为1
+- gamma_weight
+
+    设置gamma权重表达式.它可以用来减少高伽马值在明亮的图像区域影响,例如只是普通的白色放大，而其它保持不变。值必须是一个在0.0到1.0范围的浮点数。值为0.0时把伽马校正效果最强，为1.0没有效果。默认设置是“1”。
+- eval
+
+    设置brightness, contrast, saturation 和 gamma是表达式时的计算模式S
+
+    它接受下面值:
+
+    ‘init’
+
+        仅在滤镜初始化或者命令被处理时计算
+    ‘frame’
+
+        每帧计算 
+
+    默认为‘init’. 
+
+下面是表达式中接受的参数:
+
+- n
+
+    帧序数，从0计数
+- pos
+
+    当前包在文件中的偏移，如果没有定义则为`NAN`
+- r
+
+    输入视频帧率，如果无效则为`NAN`
+- t
+
+    以秒计的时间戳，如果输入时间戳无效则为`NAN`
+
+#### eq命令 ####
+滤镜也接受下面的命令：
+
+- contrast
+
+    设置contrast表达式
+- brightness
+
+    设置brightness表达式
+- saturation
+
+    设置saturation表达式
+- gamma
+
+    设置gamma表达式
+- gamma_r
+
+    设置gamma_r表达式
+- gamma_g
+
+    设置gamma_g表达式
+- gamma_b
+
+    设置gamma_b表达式
+- gamma_weight
+
+    设置gamma_weight表达式
+
+    命令接受对应选项中相同的语法
+
+    如果指定的表达式是无效的，则保持当前值
+
+### extractplanes ###
+从输入流分离单独的颜色通道成为灰度视频流
+
+滤镜接受下面选项：
+
+- planes
+
+    设置要提取的通道
+
+    接受下面的值（标识通道）:
+
+    ‘y’
+    ‘u’
+    ‘v’
+    ‘a’
+    ‘r’
+    ‘g’
+    ‘b’
+
+    选择无效的值会产生错误。这也意味着同时你只能选择`r, g, b和y`，或者`y, u, v`
+
+#### extractplanes例子 ####
+-  提取亮度和`u`和`v`颜色分量到3个灰度输出。
+
+	ffmpeg -i video.avi -filter_complex 'extractplanes=y+u+v[y][u][v]' -map '[y]' y.avi -map '[u]' u.avi -map '[v]' v.avi
+
+### elbg ###
+应用多色调分色印效果，使用了ELBG(增强型LBG)算法。（构建颜色模板）
+
+对每个输入图像，滤镜会对于给定编码长度计算最优的从输入到输出的的映射，它们对应于不同的输出颜色的数量
+
+滤镜接受下面的选项：
+
+- codebook_length, l
+
+    设置编码长度,值必须是正整数，代表不同的输出颜色数量，默认为256
+- nb_steps, n
+
+    设置计算最优映射的最大迭代数。值越高，结果越好，但越耗时。默认为1
+- seed, s
+
+    设置一个随机种子，必须是0-UINT32_MAX间的整数，如果不指定，或者设置为-1 ，则会自动选择一个好的随机值
+
+### fade ###
+应用淡入/淡出
+
+它接受下面参数：
+
+- type, t
+
+    指定类型是`in`代表淡入，`out`代表淡出，默认为`in`
+- start_frame, s
+
+    指定应用效果的开始时间，默认为0.
+- nb_frames, n
+
+    应用效果的最后一帧序数。对于淡入，在此帧后将以本身的视频输出，对于淡出此帧后将以设定的颜色输出，默认25.
+- alpha
+
+    如果设置为1，则只在透明通道实施效果（如果只存在一个输入），默认为0
+- start_time, st
+
+    指定按秒的开始时间戳来应用效果。如果`start_frame`和`start_time`都被设置，则效果会在更后的时间开始，默认为0
+- duration, d
+
+    按秒的效果持续时间。对于淡入，在此时后将以本身的视频输出，对于淡出此时后将以设定的颜色输出。如果`duration`和`nb_frames`同时被设置，将采用`duration`值。默认为0（此时采用`nb_frames`作为默认）
+- color, c
+
+    设置淡化后（淡入前）的颜色，默认为"black". 
+
+#### fade例子 ####
+-  30帧开始淡入
+
+    fade=in:0:30
+- 等效上面
+
+    fade=t=in:s=0:n=30
+- 在200帧视频中从最后45帧淡出
+
+    fade=out:155:45
+    fade=type=out:start_frame=155:nb_frames=45
+- 对1000帧的视频25帧淡入，最后25帧淡出:
+
+    fade=in:0:25, fade=out:975:25
+- 让前5帧为黄色，然后在5-24淡入:
+
+    fade=in:5:20:color=yellow
+- 仅在透明通道的第25开始淡入
+
+    fade=in:0:25:alpha=1
+- 设置5.5秒的黑场，然后开始0.5秒的淡入:
+
+    fade=t=in:st=5.5:d=0.5
+
+### fftfilt ###
+在频域内应用任意表达式于样品
+
+- dc_Y
+
+    调整亮度dc值（增益），范围0-1000，默认为0
+- dc_U
+
+    调整色度第1分量dc值（增益），范围0-1000，默认为0
+- dc_V
+
+    调整色度第2分量dc值（增益），范围0-1000，默认为0
+- weight_Y
+
+    设置对于亮度的频域权重表达式
+- weight_U
+
+    设置对于色度第1分量的频域权重表达式
+- weight_V
+
+    设置对于色度第2分量的频域权重表达式
+
+    滤镜接受下面的变量: 
+- X
+- Y
+
+    对应当前样本点的坐标
+- W
+- H
+
+    当前图像的宽和高 
+
+#### fftfilt例子 ####
+- 高通:
+
+    fftfilt=dc_Y=128:weight_Y='squish(1-(Y+X)/100)'
+- 低通:
+
+    fftfilt=dc_Y=0:weight_Y='squish((Y+X)/100-1)'
+- 锐化:
+
+    fftfilt=dc_Y=0:weight_Y='1+squish(1-(Y+X)/100)'
+
+### field ###
+使用步算法从隔行图像中提取单个场来避免浪费CPU时间。标记为逐行输出帧。
+
+滤镜接受下面选项：
+
+- type
+
+	指定是`top`（或者0）还是`bottom`（或者1）类型的场
+
+### fieldmatch ###
+场匹配用于反转电视（隔行）电影。它为了从电视流中建立起逐帧电影，需要过滤保留部分重复帧，为了更好的对压缩转换电视`fieldmatch`滤镜需要跟随一个[`decimate`](#decimate)滤镜之类的抽取滤镜。
+
+为了更好的分离和抽取，需要在两个滤镜间插入一个反交错滤镜。如果源是混合了电视电影和现实的内容，则单独的`fieldmatch`滤镜不足以分离出交错内容，所以需要一个诸如[`yadif`](#yadif)之类的反交错滤镜来进一步标记剩余的交错内容，以便于后面的抽取。
+
+除了各种配置选项，`fieldmatch`可以通过`ppsrc`可选项启用第二个流。如果被允许，将基于第二个流进行帧的重建。它允许第一个流作为预处理来帮助各种滤镜算法实现无损输出（减少能正确匹配）。通常一个`field-aware`降噪，或者亮度/对比度调整可以实现这一的帮助。
+
+**注意**滤镜使用如TIVTC/TFM （AviSynth项目）和 VIVTC/VFM（VapourSynth项目）的相同算法。`fieldmatch`有一点克隆TFM的意味，除了一些行为和选项不同外，语义和用法很接近。
+
+当前[`decimate`](#decimate)滤镜仅工作在固定帧率视频。在输入视频是混合了电视电影和逐场内容且是变帧率时不能使用`fieldmatch`和`decimate`
+
+滤镜接受下面的选项：
+
+order
+
+    指定输入流的场序。可用值:
+
+    ‘auto’
+
+        自动探测 (采用FFmpeg内部校验值). 
+    ‘bff’
+
+        设置为下场优先 
+    ‘tff’
+
+        设置为上场优先 
+
+    **注意**不要太信任流的宣称值（即需要尝试探测）
+
+    默认为auto.
+mode
+
+    设置匹配模式或采用的策略. `pc`模式是最安全的，不会产生抖动，但其对于错误编辑或者混合会被输出，而实际有更好的匹配结果（即检测不出最好匹配结果）。在其他处理中`pcn_ub`模式最有可能出现创建抖动的危险，但如果存在最好匹配则一定可以检测出。其他模式介于二者之间。
+
+    更多关于p/c/n/u/b 的有效性见 p/c/n/u/b 意义部分。
+
+    有效值有:
+
+    ‘pc’
+
+        2路匹配 (p/c) 
+    ‘pc_n’
+
+        2路匹配，并尝试第3路 (p/c + n) 
+    ‘pc_u’
+
+        2路匹配，并尝试第3路 (同`order`)对应 (p/c + u) 
+    ‘pc_n_ub’
+
+        2路匹配，并尝试第3路, 并可尝试第4/第5匹配(p/c + n + u/b) 
+    ‘pcn’
+
+        3路匹配 (p/c/n) 
+    ‘pcn_ub’
+
+        3路匹配，并尝试第4/第5匹配 (p/c/n + u/b) 
+
+    括号中的模式匹配是假设order=tff (场序是自动或者上场优先).
+
+    pc模式最快，而pcn_ub则最慢
+
+    默认为pc_n.
+ppsrc
+
+    标记主要输入作为预处理输入，而且允许第二个输入流作为干净源。参考滤镜介绍以了解更多详细信息。它类似于VFM/TFM 的clip2特性.
+
+    默认为0 (表示禁止).
+field
+
+    设置场序，它建议设置为同`order`，除非你尝试的结果是失败。在某些情况下改变设置可以产生很大的匹配性能影响，可用值有:
+
+    ‘auto’
+
+        自动 (同于`order`中的介绍). 
+    ‘bottom’
+
+        下场优先 
+    ‘top’
+
+        上场优先 
+
+    默认为auto.
+mchroma
+
+    设置色度信号是否包含在比较判断中。大多数情况下建议不专门设置。仅当影片中包含坏的色度问题如有大片的彩虹或者其他工件时才该设置为0。设置为0也可以加快处理但会造成精度的降低
+
+    默认为1.
+y0
+y1
+
+    这些定义用来明确一个范围，以除去（忽略）字幕、台标或者其他可能干扰匹配的东西。其中y0设置扫描的开始行，y1设置扫描的结束行（包括y0和y1，之外的部分被忽略），如果y0和y1设置为相同的值将禁用这个特性。y0和y1都默认为0
+scthresh
+
+    设置在亮度上场景变化最大百分比数, 好的值范围为[8.0, 14.0]，场景变化检测只是在combmatch=sc有效. 可用值范围[0.0, 100.0].
+
+    默认为12.0.
+combmatch
+
+    当设置为非`none`, `fieldmatch`会在更多的情况中梳理出合适的结果。有效值:
+
+    ‘none’
+
+        梳理多种可能但没有最优结果 
+    ‘sc’
+
+        在采用了场景改变检测基础上梳理结果
+    ‘full’
+
+        全时梳理结果 
+
+    默认为sc.
+combdbg
+
+    强制`fieldmatch`对某些指标匹配并输出。这个设置在TFM/VFM中被称为`micout`，有效值有:
+
+    ‘none’
+
+        没有强制 
+    ‘pcn’
+
+        强制p/c/n  
+    ‘pcnub’
+
+        强制p/c/n/u/b. 
+
+    默认none.
+cthresh
+
+    用于控制梳理检测的阀值。它实质上控制“强烈”或“可见”的交错必须被检测到。大的值意味着必须有更多差异才能被检验到，小的值则允许很少的交错（量）就会被检测到。有效值为-1（像素级的检测）到255（没有像素会被作为交错检验出来），这基本上是一个像素值的差异，好的范围是[8, 12].
+
+    默认为9.
+chroma
+
+    决定是否把色度检测包含在匹配模式中。如果源中存在色度问题（彩虹）则必需要禁用。实际上设置`chroma=0`通常就足够可靠了，除非你确实在源中包含了色度需要被检测
+
+    默认为0.
+blockx
+blocky
+
+    设置检测窗的x和y轴尺寸。它协同`combpel`领域像素一起来声明梳理框架。参考`combpel`介绍了解更多信息。可能值是2的幂数，从4到512。
+
+    默认为16.
+combpel
+
+    在梳理检测窗中梳理像素的数量。虽然`cthresh`控制了必须是“可见”的才被梳理（即精度），而这个参数控制了在局部（检测窗）中有“多少”则被检出，最小为0，最大为`blocky x blockx`（它们定义了整个检测窗）。它类似于TFM/VFM中的MI
+
+    默认为80. 
+
+#### p/c/n/u/b的意义 ####
+
+##### p/c/n #####
+我们假定有下如下的电视电影流：
+
+	Top fields:     1 2 2 3 4
+	Bottom fields:  1 2 3 4 4
+
+对应的数字对应需处理的场。在这里前2帧是需要的，3和4则被梳理，等等
+
+当`fieldmatch`被配置运行在`field=bottom`时，输入流被如下传输：
+
+	输入流:
+		T     1 2 2 3 4
+	    B     1 2 3 4 4   <-- 匹配参考
+	
+	匹配检测:  c c n n c
+	
+	输出流:
+	    T     1 2 3 4 4
+	    B     1 2 3 4 4
+
+作为一个场匹配的结果，我们可以看到一些帧被复制了。为了完整实现电视电影的逆转换，你需要依靠后续的滤镜去除掉重复的帧。参考[`decimate`](#decimate)滤镜。
+
+如果相同的处理但配置为`field=top`，结果会：
 
 
+	输入流:
+		T     1 2 2 3 4		<-- 匹配参考
+	    B     1 2 3 4 4   
+	
+	匹配检测:  c c p p c
+	
+	输出流:
+	    T     1 2 2 3 4
+	    B     1 2 2 3 4
+
+在这些例子里，我们可以看出`p`、`c`和`n`的意义。基本上，它们指出参考帧的位置（关系）
+
+- p，匹配于前一帧
+- c，匹配于当前帧
+- n，匹配于下一帧
+
+##### u/b #####
+这里的`u`和`b`是在匹配帧基础上的位级描述。在下面的例子中，我们假定当前匹配了2个帧（Top:2 ,bottom:2）,根据匹配，一个`x`是在每个匹配场景的上方和下方：
+
+对于`field=bottom`的匹配
+
+	 匹配:           c         p           n          b          u
+	
+	                 x       x               x        x          x
+	  Top          1 2 2     1 2 2       1 2 2      1 2 2      1 2 2
+	  Bottom       1 2 3     1 2 3       1 2 3      1 2 3      1 2 3
+	                 x         x           x        x              x
+	
+	输出帧:
+	                 2          1          2          2          2
+	                 2          2          2          1          3
+
+对于`field=top`的匹配
+
+	 匹配:           c         p           n          b          u
+	
+	                 x         x           x        x              x
+	  Top          1 2 2     1 2 2       1 2 2      1 2 2      1 2 2
+	  Bottom       1 2 3     1 2 3       1 2 3      1 2 3      1 2 3
+	                 x       x               x        x          x
+	
+	输出帧:
+	                 2          2          2          1          2
+	                 2          1          3          2          2
+
+#### fieldmatch例子 ####
+- 简单的IVTC 有上场优先的视频电影流：
+
+	fieldmatch=order=tff:combmatch=none, decimate
+- 高级IVTC，由后续[`yadif`](#yadif)继续处理：
+
+	fieldmatch=order=tff:combmatch=full, yadif=deint=interlaced, decimate
 
 
+### fieldorder ###
+改变输入的场序
 
+接受下面的参数：
+
+- order
+
+	输出场序。有效值有`ttf`对应的上场优先和`bff`对应的下场优先
+
+默认是`tff`
+
+转换是将图像内容向上或者向下一行，并填充其余部分以符合图像内容。该方法适合大多数广播电视的场序转换
+
+如果输入视频没有标记为交错，或者已经标记为所需场序，则滤镜不会改变输入视频
+
+它常用于转换到PAL DV格式，它是下场优先的。
+
+例如：
+
+	ffmpeg -i in.vob -vf "fieldorder=bff" out.dv
+
+### fifo ###
+缓冲输入并在需要时送出
+
+它常用于`libavfilter`的自动插入（保证一些连接有效）
+
+它没有参数
+
+### find_rect ###
+找到一个矩形对象
+
+它接受下面的选项：
+
+- object
+
+    对象图像的文件路径，需要是gray8.
+- threshold
+
+    探测阀，默认0.5.
+- mipmaps
+
+    最小的贴图, 默认为3.
+- xmin, ymin, xmax, ymax
+
+    指定矩形对象检测的范围（xmin,ymin）(xmax,ymax)定义的一个矩形中
+
+#### find_rect例子 ####
+-  对视频生产一个调色板视频
+
+	ffmpeg -i file.ts -vf find_rect=newref.pgm,cover_rect=cover.jpg:mode=cover new.mkv
+
+### cover_rect ###
+覆盖一个矩形对象
+
+它接受下面的选项：
+
+- cover
+
+    用作覆盖的图像路径，需要是yuv420.
+- mode
+
+    设置覆盖模式
+
+    接受下面的值:
+
+    ‘cover’
+
+        蒙在表面 
+    ‘blur’
+
+        同周边插值来覆盖 
+
+    默认blur. 
+
+#### cover_rect例子 ####
+-  对视频生产一个调色板视频
+
+	ffmpeg -i file.ts -vf find_rect=newref.pgm,cover_rect=cover.jpg:mode=cover new.mkv
+	
+###  format ###
+转换输入视频为指定的像素格式。`libavfilter`尝试为下一个滤镜输入选择一个合适的输出（而自动采用）。
+
+它接受下面的参数：
+
+-  pix_fmts
+
+	一个用`|`分隔的像素格式名列表，例如"pix_fmts=yuv420p|monow|rgb24".
+
+####  format例子 ####
+- 转换输出为`yuv420p`格式
+
+	format=pix_fmts=yuv420p
+
+	转换输入到列表的任何格式之一
+
+	format=pix_fmts=yuv420p|yuv444p|yuv410p
+
+### fps ###
+通过复制或者丢弃帧来把帧率调整为一个近似固定值
+
+它接受下面的参数：
+
+- fps
+
+	目标帧率，默认25
+- round
+
+    舍入方法.
+
+    可能值:
+
+    zero
+
+        对0舍入（去小数），绝对值最小 
+    inf
+
+        从0开始的园 
+    down
+
+        向负无穷舍入（去除小数） 
+    up
+
+        向正无穷舍入（见小数加1） 
+    near
+
+        舍入到近似值（命名的频率） 
+
+    默认为near.
+- start_time
+
+    假设第一个`PTS`是一个按秒的给定值。它允许填补/去除流的开始。默认没有需要填补/去除。例如设置为0，将会在视频流后于音频流时在前面添加黑帧，否则去除早于音频流的负帧。
+
+另外，选项可以指定为一个平面字符串形式：fps[:round]
+
+参考[`setpts`](#setpts)滤镜
+
+#### fps例子 ####
+- 输出25帧频
+
+	fps=fps=25
+- 输出24帧频，使用了帧频缩写名和舍入方法为最接近
+
+	fps=fps=film:round=near
+
+### framepack ###
+包两个不同的视频流到立体视频,设置适当的元数据支持的编解码器。两个视角视频需要有相同的尺寸与帧频以及以短的视频为停止时间。**注意**你可能需要预先通过[`scale`](#scale)和[`fps`](#fps)调整。
+
+接受下面的参数：
+
+- format
+
+    设置包装格式，支持:
+
+    sbs
+
+        一个视图左另一个在右(默认).
+    tab
+
+        一个视图在上，一个视图在下
+    lines
+
+        视图按线交错（按行）
+    columns
+
+        视图按列交错
+    frameseq
+
+        视图都暂时交错
+
+一些例子：
+- 把左/右视图以 `frameseq`模式打包成立体视频
+
+	ffmpeg -i LEFT -i RIGHT -filter_complex framepack=frameseq OUTPUT
+- 把视图以 `sbs`模式交错，还进行了放缩预处理
+
+	ffmpeg -i LEFT -i RIGHT -filter_complex [0:v]scale=w=iw/2[left],[1:v]scale=w=iw/2[right],[left][right]framepack=sbs OUTPUT
+
+### framestep ###
+每`N`帧选择1帧
+
+它接受下面选项：
+
+- step
+
+	设置间隔的`N`值。必须大于0，默认为1（这样相当于不处理，完全输出）
+
+### frei0r ###
+对视频采用`frei0r`效果
+
+编译配置参数` --enable-frei0r`
+
+接受下面的参数：
+
+- filter_name
+
+    设置加载的`frei0r`效果名。如果环境变量`FREI0R_PATH`被定义，则将在其所指目录搜索。`FREI0R_PATH`是有`，`分隔的多个路径。通常`frei0r`的搜索路径是: HOME/.frei0r-1/lib/, /usr/local/lib/frei0r-1/, /usr/lib/frei0r-1/.
+- filter_params
+
+    一个由’|’分隔的参数列表来传递给`frei0r`效果
+
+	一个`frei0r`效果的参数是布尔值（为`y`或者`n`）、双精度数、颜色值（以R/G/B形式描述，其中R、G和B是0.0-1.0间的浮点数）或者在[颜色/color](ffmpeg-doc-cn-07.md#颜色Color)中定义的颜色名、位置量（以X/Y形式描述，X和Y均是浮点数）和/或 字符串
+
+	参数的数量和类型要根据加载的效果，如果一个效果参数没有指定则选用默认设置
+
+#### frei0r例子 ####
+- 采用`distort0r`效果，参数有2个值。
+
+	frei0r=filter_name=distort0r:filter_params=0.5|0.01
+- 应用`colordistance`效果，有一个颜色值作为参数（下面3个形式等效）
+
+	frei0r=colordistance:0.2/0.3/0.4
+	frei0r=colordistance:violet
+	frei0r=colordistance:0x112233
+- 应用`perspective`效果，指定了图像的左上和右上位置
+
+	frei0r=perspective:0.2/0.2|0.8/0.2
+
+关于`frei0r`的更多信息参考[http://frei0r.dyne.org](http://frei0r.dyne.org)
+
+### fspp ###
+应用快速简单的后处理，这是[`spp`](#spp)滤镜的快速版本
+
+它分离 (I)DCT为水平/垂直 来传递，不同于简单的 `post`滤镜，其中每个块执行一次，而不是每个像素，则允许更快的速度。
+
+滤镜接受下面的选项：
+
+- quality
+
+    设置品质水平，它定义了平均水平数，接受4-5的整数，默认为4
+- qp
+
+    强制包含一个不断量化参数，它接受0-63间的整数，如果不设定，滤镜会使用视频流的`QP`（如果有效）
+- strength
+
+    设置滤镜强度。它接受-15-30间的整数。越低表示更多细节但需要更多工作，高的值则图像平滑（模糊）也更快，默认值为0——PSNR最佳
+- use_bframe_qp
+
+    为1则允许从B帧使用QP。使用它在大的QP时可能导致B帧闪烁。默认为0（不允许）
+
+### geq ###
+滤镜接受下面的选项：
+
+- lum_expr, lum
+
+    设置亮度表达式 
+- cb_expr, cb
+
+    设置色度分量中蓝色表达式 
+- cr_expr, cr
+
+    设置色度分量中红色表达式 
+- alpha_expr, a
+
+    设置透明通道表达式Set the alpha expression. 
+- red_expr, r
+
+    设置红色表达式 
+- green_expr, g
+
+    设置绿色表达式 
+- blue_expr, b
+
+    设置蓝色表达式 
+
+根据指定的选项来确定颜色空间。如果`lum_expr`, `cb_expr`, 或者`cr_expr`中的一个被定义，则滤镜自动选择`YCbCr`颜色空间，如果`red_expr`, `green_expr`,或 `blue_expr`中有一个被定义则选择`RGB`颜色空间
+
+如果其中一个颜色分量选项没有被定义，则它等于前一个谷底值。如果`alpha_expr`没有被定义则认为是不透明的。如果没有任何颜色分量被定义，它将只计算亮度表达式
+
+表达式接受下面变量和函数:
+
+- N
+
+    帧序数，从0开始计数 from 0.
+- X
+- Y
+
+    当前样本坐标
+- W
+- H
+
+    图像宽和高
+- SW
+- SH
+
+    依赖当前滤镜的放缩宽和高。它根据当前像素亮度数和当前平面的比例。例如对于YUV4:2:0给我饿死，这个值是1,1对应于亮度还有0.5，0.5 的颜色分量
+- T
+
+    按秒当前帧时间
+- p(x, y)
+
+    返回当前帧平面（x,y）点的像素值
+- lum(x, y)
+
+    返回当前帧平面（x,y）点的像素亮度值
+- cb(x, y)
+
+    返回当前帧平面（x,y）点的像素色度分量差蓝色值,0表示没有该分量
+- cr(x, y)
+
+    返回当前帧平面（x,y）点的像素色度分量差红色值,0表示没有该分量
+- r(x, y)
+- g(x, y)
+- b(x, y)
+
+    返回当前帧平面（x,y）点的像素红/绿/蓝值，为0表示没有该颜色
+- alpha(x, y)
+
+    返回当前帧平面（x,y）点的像素透明通道值，为0表示没有该值
+
+对于函数，如果x和y超出了范围，则值自动由影片边缘值代替 
+
+#### geq例子 ####
+- 水平翻转图像
+	geq=p(W-X\,Y)
+- 生成一个二维的正弦波,角π/ 3和100像素的波长:
+
+    geq=128 + 100*sin(2*(PI/100)*(cos(PI/3)*(X-50*T) + sin(PI/3)*Y)):128:128
+- 生成一个花哨的神秘的光:
+
+    nullsrc=s=256x256,geq=random(1)/hypot(X-cos(N*0.07)*W/2-W/2\,Y-sin(N*0.09)*H/2-H/2)^2*1000000*sin(N*0.02):128:128
+-  生成一个快速浮雕效果:
+
+    format=gray,geq=lum_expr='(p(X,Y)+(256-p(X-4,Y-4)))/2'
+- 根据像素的位置修改RGB分量:
+
+    geq=r='X/W*r(X,Y)':g='(1-X/W)*g(X,Y)':b='(H-Y)/H*b(X,Y)'
+- 创建一个径向渐变,是相同的大小作为输入(也见[`vignette`](#vignette)滤镜):
+
+    geq=lum=255*gauss((X/W-0.5)*3)*gauss((Y/H-0.5)*3)/gauss(0)/gauss(0),format=gray
+- 创建一个线性渐变使用作为另一个滤镜的蒙版,然后用叠加组成。在本例中,视频会从底部到顶部的y轴定义的线性梯度逐渐变得更加模糊:
+
+    ffmpeg -i input.mp4 -filter_complex "geq=lum=255*(Y/H),format=gray[grad];[0:v]boxblur=4[blur];[blur][grad]alphamerge[alpha];[0:v][alpha]overlay" output.mp4
 
