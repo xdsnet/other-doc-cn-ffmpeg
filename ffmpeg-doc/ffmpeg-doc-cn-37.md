@@ -1288,12 +1288,12 @@ RGB颜色键控
     drawtext='fontfile=FreeSans.ttf:text=%{localtime\:%a %b %d %Y}'
 - 以淡入淡出显示文本 (显示/消失）
 
-    #!/bin/sh
-    DS=1.0 # display start
-    DE=10.0 # display end
-    FID=1.5 # fade in duration
-    FOD=5 # fade out duration
-    ffplay -f lavfi "color,drawtext=text=TEST:fontsize=50:fontfile=FreeSerif.ttf:fontcolor_expr=ff0000%{eif\\\\: clip(255*(1*between(t\\, $DS + $FID\\, $DE - $FOD) + ((t - $DS)/$FID)*between(t\\, $DS\\, $DS + $FID) + (-(t - $DE)/$FOD)*between(t\\, $DE - $FOD\\, $DE) )\\, 0\\, 255) \\\\: x\\\\: 2 }"
+    #!/bin/sh  
+    DS=1.0 # display start  
+    DE=10.0 # display end  
+    FID=1.5 # fade in duration  
+    FOD=5 # fade out duration  
+    ffplay -f lavfi  "color,drawtext=text=TEST:fontsize=50:fontfile=FreeSerif.ttf:fontcolor_expr=ff0000%{eif\\\\: clip(255*(1*between(t\\, $DS + $FID\\, $DE - $FOD) + ((t - $DS)/$FID)*between(t\\, $DS\\, $DS + $FID) + (-(t - $DE)/$FOD)*between(t\\, $DE - $FOD\\, $DE) )\\, 0\\, 255) \\\\: x\\\\: 2 }"
 
 关于`libfreetype`, 参考[http://www.freetype.org/](http://www.freetype.org/)
 
@@ -2136,3 +2136,399 @@ combpel
 
     ffmpeg -i input.mp4 -filter_complex "geq=lum=255*(Y/H),format=gray[grad];[0:v]boxblur=4[blur];[blur][grad]alphamerge[alpha];[0:v][alpha]overlay" output.mp4
 
+### gradfun ###
+解决条带效果，这是由于对于8位颜色深度有时会被就近截断成平面（化），通过插入渐变来柔化它们
+
+这个滤镜仅用于回放。在有损压缩前也不要使用它，因为压缩本身就会损伤细节（渐变）而成为条带
+
+它接受下面的参数:
+
+- strength
+
+    滤镜对任何像素最大的改变值。这也是检测(颜色)平坦区域的阀值。取值范围是.51 至64，默认为1.2.超出范围的值会被被裁减为有效值
+- radius
+
+    指定合适的修正梯度。一个大的`radius`值会产生更平滑的过渡，也防止滤镜修改处理区域附近的像素。接受的范围为8-32，默认为16，超出范围的值会被裁减以符合
+
+另外，选项可以采用平面字符串的形式指定： `strength[:radius]`
+
+#### gradfun例子 ####
+- 以3.5的`strength`和8的`radius`值应用滤镜:
+
+    gradfun=3.5:8
+- 指定`radius`，省略`strength` (会采用默认值为1.2):
+
+    gradfun=radius=8
+    
+### haldclut ###
+对视频流采用`Hald CLUT`
+
+第一个输入是要处理的视频，第二个则是`Hald CLUT`，这个`Hald CLUT`输入可以是一张简单的图片或者复合视频信号
+
+滤镜接受下述选项:
+
+- shortest
+
+    强制以最短输入来总作为整个数出。默认为0
+- repeatlast
+
+    在结束后继续以`CLUT`处理。值为0则禁止。默认为1. 
+
+`haldclut`也有类似[`lut3d`](#lut3d)相同的选项（两个滤镜共享相同的内部结构）。 
+
+关于`Hald CLUT`可以通过`Eskil Steenberg`（Hald CLUT的作者）的网站，在[http://www.quelsolaar.com/technology/clut.html](http://www.quelsolaar.com/technology/clut.html) 
+
+#### haldclut工作流例子 ####
+##### Hald CLUT视频流 #####
+
+- 生成一个`Hald CLUT`的流 ，流改变各种效果。
+
+	ffmpeg -f lavfi -i haldclutsrc=8 -vf "hue=H=2*PI*t:s=sin(2*PI*t)+1, curves=cross_process" -t 10 -c:v ffv1 clut.nut
+
+	**注意**：确认你选用的是无损编码
+
+- 然后把滤镜（随`haldclut`）应用在随机流。
+
+	ffmpeg -f lavfi -i mandelbrot -i clut.nut -filter_complex '[0][1] haldclut' -t 20 mandelclut.mkv
+
+	这里`Hald CLUt`被用于前10秒（持续时间由clut.nut定义）。然后其最后的CLUT图片应用到继续的的[`mandelbrot`](#mandelbrot)流上
+
+##### 带预览的Hald CLUT #####
+
+一个`Hald CLUT`支持作为有多层（`Level*Level*Level`）像素的多层（`Level*Level*Level`）图像。 对于一个给定的`Hald CLUT`，FFmpeg尽可能在图像的左上开始选择最大可能， 将选择尽可能最大的广场在图片的左上角开始。剩下的填充像素(底部或右)将被忽略。这个区域可以用来添加一个预览`Hald CLUT`。.
+
+通常，下面会利用[`haldclutsrc`](ffmpeg-doc-cn-38.md#haldclutsrc)生成一个支持`haldclut`滤镜的`Hald CLUT`图:
+
+	ffmpeg -f lavfi -i haldclutsrc=8 -vf "
+	   pad=iw+320 [padded_clut];
+	   smptebars=s=320x256, split [a][b];
+	   [padded_clut][a] overlay=W-320:h, curves=color_negative [main];
+	   [main][b] overlay=W-320" -frames:v 1 clut.png
+
+它包含原始和CLUT的预览效果：SMPTE颜色条被显示在右上，其下显示相同的颜色处理的颜色变化
+
+然后,这Hald CLUT效果可以可视化:
+
+	ffplay input.mkv -vf "movie=clut.png, [in] haldclut"
+	
+### hflip ###
+
+水平翻转输入视频
+
+例如利用fmpeg水平翻转输入视频:
+
+	ffmpeg -i in.avi -vf "hflip" out.avi
+	
+### histeq ###
+这个过滤器适用于每帧的基础上的全局颜色直方图均衡化
+
+它被用于产生压缩了像素强度的正确视频。滤镜在强度范围内重新分配像素强度分布。它可被视为“自动调整对比度滤镜"。滤镜只适用于纠正退化或者较差质量的视频采集
+
+接受下面的选项:
+
+- strength
+
+    确定的数量均衡。随着参数的降低，像素强度的分布在输入帧中越来越多。值为浮点数，范围为[0,1]，默认0.200.
+- intensity
+
+    设置在生成的输出中最大可能强度。`strength`设置表面了期望，而`intensity`的设置强调了限制，从而避免了出现错误。值为浮点数，范围为[0,1]，默认0.210.
+- antibanding
+
+    设置antibanding级别。如果启用，滤镜将通过随机小批量改变输出像素的亮度直方图避免产生条带。允许的值有`none`, `weak` 或`strong`，默认为`none` 。
+
+### histogram ###
+对输入视频计算并绘制一个颜色分布直方图
+
+它计算的直方图代表了各种颜色分量在图像中的分布情况。
+
+滤镜接受下面的选项:
+
+- mode
+
+    设置直方图模式.
+
+    有下面的可能值:
+
+    ‘levels’
+
+        显示图像颜色分量的标准直方图。它显示每个颜色分量图形。依据输入视频可以显示当前帧的`Y, U, V, A `或者`R, G, B`分量图形。其下是每个图像颜色分量的规模计
+    ‘color’
+
+        在二维图（这被称为矢量监视器）中显示色度通道值 (U / V颜色位置) 。像素矢量表示亮度，每个点对应代表输入中的各个像素（都有其色度分量值）。V分量为水平（X）坐标，最左表示`V=0`,最右为`V=255`，U分量为垂直（Y）坐标，最上标识`U=0`，最下`U=255`.
+
+        图中白色像素的位置对应一个像素的色度值输入。因此该图可以用来了解色相(颜色味道)和饱和度(颜色)的情况其反映了原始图像的主导色调。颜色的色调变化围绕着一个区域(监视器面)，在区域的中心饱和度是0，则意味着对应的像素没有颜色（白色，只有亮度值）。如果图像中一个特定的颜色的数量增加(而其他颜色不变)，即饱和度的增加,则在矢量监视器中显示为整体偏向边缘。
+    ‘color2’
+
+        类似color以矢量监视器显示，不过增加了实际色度值的显示。
+    ‘waveform’
+
+        每行（row）/列（colum）颜色分量图形。在row模式，图形左边表示颜色分量为0，右边为255，在column默认，顶部表示颜色分量值为0，底部为255
+
+    默认为`levels`模式
+- level_height
+
+    在`levels`模式中设置图形高，默认200，允许[50, 2048].
+- scale_height
+
+    在`levels`设置颜色放缩高，默认12，允许[0, 40].
+- step
+
+    对`waveform`模式设置步长。小的值用于更多了解在相同亮度下颜色分布情况，默认10，允许 [1, 255] 。
+- waveform_mode
+
+    对`waveform`设置`row`或者`column`，默认`row`
+- waveform_mirror
+
+     对`waveform`设置镜像模式，0表示不镜像（默认），1表示镜像。在镜像模式中，对`row`高值在左边，对`column`高值在上面
+- display_mode
+
+    设置`waveform`和`levels`的显示模式，它接受:
+
+    ‘parade’
+
+        依次排列各种颜色图，`waveform`的`row`是从左到右，`column`是从上到下。`levels`中是从上到下。
+
+        `waveform`中应用这种模式可以容易的通过比较顶部与底部轮廓波形来区分高光和阴暗的颜色图像，因为白、灰和黑的特点是完全相等的红、绿和蓝的混合。中性的图片区域应该是这三种波形的大致相等的宽/高度。如果不是，则可以通过水平调整这三个波形来很容易的实现校正。
+    ‘overlay’
+
+        除了表示颜色的图形组件直接叠加在一起外，与`parade`模式展示的信息相同
+
+        在`waveform`中这样的显示模式更易于发现颜色的相对差异或相似。因为重叠区域的分量应该是相同的，如中性的白色、灰和黑
+
+    默认为`parade`
+- levels_mode
+
+    对`levels`设置模式，可以是`linear`或`logarithmic`，默认`linear` 
+
+#### histogram例子 ####
+- 计算并绘制柱状图:
+
+    ffplay -i input -vf histogram
+
+### hqdn3d ###
+这是一个高精度/质量的3D降噪滤镜。它的目的是减少图像噪声,产生平滑的图像和让静止图像保存原样。它可以提高压缩率。
+
+接受下面可选参数:
+
+luma_spatial
+
+    非负浮点数来指明亮度强度。默认为4.0
+chroma_spatial
+
+    非负浮点数来指明亮色强度，默认为`3.0*luma_spatial/4.0`.
+luma_tmp
+
+    一个浮点数指明亮度临时强度。默认为`6.0*luma_spatial/4.0`
+chroma_tmp
+
+    一个浮点数指明色度临时强度。默认为`luma_tmp*chroma_spatial/luma_spatial` 
+
+### hqx ###
+应用一个高质量的像素放大滤镜。这个滤镜最初由 Maxim Stepin创建。
+
+它接受下面的选项:
+
+- n
+
+    设置缩放尺度。2 对应hq2x, 3 对应hq3x，4对应hq4x，默认为3。
+    
+### hue ###
+编辑或者设定颜色的饱和度
+
+接受下面的参数:
+
+- h
+
+    指定色度角的度数，接受表达式，默认为0
+- s
+
+    指定饱和度，范围[-10,10]，接受表达式，默认为"1".
+- H
+
+    指定色调角的弧度，接受表达式，默认为"0".
+- b
+
+    指定亮度，范围[-10,10]。接受表达式，默认为"0". 
+
+`h`和`H`互斥，不能同时设定
+
+其中`b`, `h`, `H`和`s`表达式允许下面内容:
+
+- n
+
+    从0开始的帧序数
+- pts
+
+    按时间基单位的输入帧时间戳
+- r
+
+    输入视频帧率，如果无效则为`NAN`
+- t
+
+    按秒的时间码，如果无效则为`NAN`
+- tb
+
+    输入视频时基 
+
+#### hue例子 ####
+- 设置色度角90度，饱和度为1:
+
+    hue=h=90:s=1
+- 同上，但以色度角弧度值进行设置:
+
+    hue=H=PI/2:s=1
+- 旋转色相,以及让饱和度在0-2间变化:
+
+    hue="H=2*PI*t: s=sin(2*PI*t)+1"
+- 从0开始应用一个3秒饱和度淡入效果:
+
+    hue="s=min(t/3\,1)"
+- 一般淡入表达式可以为:
+
+    hue="s=min(0\, max((t-START)/DURATION\, 1))"
+- 从5秒开始的饱和度淡出:
+
+    hue="s=max(0\, min(1\, (8-t)/3))"
+- 一般淡出表达式为:
+
+    hue="s=max(0\, min(1\, (START+DURATION-t)/DURATION))"
+
+#### hue命令 ####
+滤镜还支持下面的命令：
+
+- b
+- s
+- h
+- H
+
+    它们分别编辑色度 和/或 饱和度 和/或 亮度。命令接受对应选项一样的语法。
+
+    如果指定的表达式是无效的，则采用当前值（不变化）
+    
+### idet ###
+检测视频交错类型。
+
+这个滤镜试图检测如果输入帧交错,逐行,顶部或底部优先（对交错视频）。它还将尝试检测相邻帧之间的字段重复(电视电影的标志)。
+
+单帧检测时只考虑当前与相邻帧每一帧类型。多帧检测结合的之前的帧类型历史。
+
+滤镜输出日志有下面的元数据值:
+
+- single.current_frame
+
+    对当前帧单帧检测结果，有如下值:“tff” (上场优先), “bff” (下场优先), “progressive”（逐行）, 和“undetermined”（不能检测出）
+- single.tff
+
+    累积的以单帧检测检测出的上场优先数
+- multiple.tff
+
+    累积的以多帧检测检测出的上场优先数
+- single.bff
+
+    累积的以单帧检测检测出的下场优先数
+- multiple.current_frame
+
+    对当前帧多帧检测结果，有如下值:“tff” (上场优先), “bff” (下场优先), “progressive”（逐行）, 和“undetermined”（不能检测出，不定）
+- multiple.bff
+
+    累积的以多帧检测检测出的下场优先数
+- single.progressive
+
+    累积的以单帧检测检测出的逐行帧数
+- multiple.progressive
+
+    累积的以多帧检测检测出的逐行帧数
+- single.undetermined
+
+    累积的以单帧检测检测出的不定帧数
+- multiple.undetermined
+
+    累积的以多帧检测检测出的不定帧数
+- repeated.current_frame
+
+    指示当前帧是从最近帧的重复情况,为“neither”(表示不是重复), “top”,或者 “bottom”.
+- repeated.neither
+
+    累积的`neither`重复情况.
+- repeated.top
+
+    累积的`top`重复情况
+- repeated.bottom
+
+    累积的`bottom`重复情况 
+
+滤镜接受下面选项:
+
+- intl_thres
+
+    设置交错阀值 
+- prog_thres
+
+    设置逐行阀值 
+- repeat_thres
+
+    重复检测阀值 
+- half_life
+
+    设定指定的帧数之后,一个给定的数据帧的贡献是减半（即只占0.5的类型）。默认为0意味着所有的帧永远是有1.0的权重
+- analyze_interlaced_flag
+
+    当设置为非0数时，`idet`将使用指定的帧数来确定交错标记是准确的，它不会对不能检测帧计数。如果发现标记是正确的使用它没有进一步的计算，即使发现标记不正确，也只是将它(标记)清除而没有进一步的计算。它插入`idet`滤镜作为低计算方法来清除交错标记。
+
+
+
+### il ###
+反转非交错或者交错
+
+这个滤镜可以把让非交错图像变成交错的，把交错图像变成非交错的。非交错的图像被分裂为2部分（称作半图），其中奇数行移到输出图像的上部，偶数行移到下半部分。你可以利用滤镜连续处理2次（相当于没有效果）。
+
+滤镜接受下面的选项：
+
+- luma_mode, l
+- chroma_mode, c
+- alpha_mode, a
+
+    对`luma_mode`, `chroma_mode`和`alpha_mode`的可能值有:
+
+    ‘none’
+
+        什么都不做
+    ‘deinterleave, d’
+
+        非交错部分，放置在其它上
+    ‘interleave, i’
+
+        交错部分，反向非交错效果
+
+    默认值为`none`
+- luma_swap, ls
+- chroma_swap, cs
+- alpha_swap, as
+
+    交换 luma/chroma/alpha 部分。交换奇数和偶数行。 默认0. 
+
+### interlace ###
+
+简单的从逐行转交错滤镜。它把奇数帧交错上（或下）行，同时把偶数帧作为下（或上）行。同时减半帧率和保持图像高度。
+
+	Original        Original             New Frame
+   	Frame 'j'      Frame 'j+1'             (tff)
+	==========      ===========       ==================
+    Line 0  -------------------->    Frame 'j' Line 0
+    Line 1          Line 1  ---->   Frame 'j+1' Line 1
+    Line 2 --------------------->    Frame 'j' Line 2
+    Line 3          Line 3  ---->   Frame 'j+1' Line 3
+     ...             ...                   ...
+
+新的帧 + 1 会以帧'j+2'和帧'j+3'这样依次生成
+
+它接受下面的选项参数:
+
+- scan
+
+    它决定了交错帧模式是`even`(tff - 默认) 还是`odd` (bff) 
+- lowpass
+
+    允许(默认)或禁止垂直低通滤波器来避免`twitter`交错和减少波纹。
+
+### 58 ###
