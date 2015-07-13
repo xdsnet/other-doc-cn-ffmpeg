@@ -2531,4 +2531,1505 @@ chroma_tmp
 
     允许(默认)或禁止垂直低通滤波器来避免`twitter`交错和减少波纹。
 
-### 58 ###
+### kerndeint ###
+通过Donald Graft的自适应内核deinterling反交错视频。其使交错视频转换成逐行视频
+
+下面是接受参数的介绍.
+
+- thresh
+
+    设置一个滤镜阀值用于确定哪些像素会被处理。值为[0,255]间整数，默认为10.如果为0则处理所有像素
+- map
+
+    设置如果超过阀值的处理模式，为1则为白色，默认为0
+- order
+
+    设置字段顺序。如果为1则交换字段，否则为0，默认为0.
+- sharp
+
+    为1则附加锐化，默认为0.
+- twoway
+
+    为1则尽量锐化，默认为0
+
+#### kerndeint例子 ####
+- 以默认值应用:
+
+    kerndeint=thresh=10:map=0:order=0:sharp=0:twoway=0
+- 允许附加锐化:
+
+    kerndeint=sharp=1
+- 超阀值后刷成白色
+
+    kerndeint=map=1
+
+### lenscorrection ###
+径向透镜畸变修正
+
+这个滤镜可以用来修正广角镜头产生的径向畸变，从而修正图像。要找到合适的参数，可以使用工具，例如`opencv`或者简单的多次试错尝试。利用`opencv`源码中的校准样例（在 `samples/cpp`）并且从结果矩阵中提取`k1`和`k2`系数。
+
+**注意**相同效果滤镜在开源KDE项目工具`Krita`和`Digikam`中同样是有效的。
+
+这个滤镜还可以同[`vignette`](#vignette)滤镜联合使用，来补偿透镜错误，它修正滤镜处理图像的失真，而[`vignette`](#vignette)滤镜纠正亮度分布，所以你有时可能需要同时使用两个滤镜，不过你还要注意点二者的顺序，即到底是哪个滤镜先使用
+
+#### lenscorrection选项 ####
+滤镜接受下面选项：
+
+- cx
+
+    图像的焦点相对x坐标,从而扭曲的中心。这个值区间[0,1],用分数表示图像的宽度比 
+- cy
+
+    图像的焦点相对y坐标,从而扭曲的中心。这个值区间[0,1],用分数表示图像的高度比
+- k1
+
+    二次修正系数。0.5意味着没有修正
+- k2
+
+    双二次修正系数。0.5意味着没有修正。
+
+生成修正的公式:
+
+	r_src = r_tgt * (1 + k1 * (r_tgt / r_0)^2 + k2 * (r_tgt / r_0)^4) 
+
+这里`r_0`是减半的图像对角，`r_src`和`r_tgt`分别是源和目标图像中相对于焦点的距离。
+
+### lut3d ###
+对视频应用3D LUT滤镜。
+
+滤镜接受下面的选项：
+
+- file
+
+    设置3D LUT文件名，该文件支持的类型有：
+
+    ‘3dl’
+
+        AfterEffects 的类型
+    ‘cube’
+
+        Iridas 的类型
+    ‘dat’
+
+        DaVinci 的类型
+    ‘m3d’
+
+        Pandora 的类型
+
+- interp
+
+    选择插值模式，有效值有：
+
+
+    ‘nearest’
+
+        选用离定义点最近的
+    ‘trilinear’
+
+        采用8点多维设置来定义插入值 
+    ‘tetrahedral’
+
+        使用一个四面体插入值
+
+### lut, lutrgb, lutyuv ###
+根据每个像素的分量数据查表选择输出值的滤镜。
+
+其中`lutyuv`应用于`YUV`输入视频，而`lutrgb`应用于`RGB`输入视频
+
+滤镜接受下面的参数：
+
+- c0
+
+    设置第一个像素分量表达式
+- c1
+
+    设置第二个像素分量表达式set second pixel component expression 
+- c2
+
+    设置第三个像素分量表达式 
+- c3
+
+    设置第四个像素分量表达式
+- r
+
+    设置红色分量表达式 
+- g
+
+    设置绿色分量表达式 
+- b
+
+    设置蓝色分量表达式
+- a
+
+    设置透明分量表达式
+- y
+
+    设置亮度（Y）分量表达式 
+- u
+
+    设置色度U/Cb分量表达式 
+- v
+
+    设置色度V/Cr分量表达式 
+
+它们每个人都指定使用的表达式计算像素对应分量（查找表方法）。
+
+具体的分量关联到每个`c*`选项的输入格式。
+
+其中`lut`滤镜允许输入像素格式是`YUV`或者`RGB`，`lutrgb`只允许`RGB`格式，`lutyuv`只允许`YUV`格式
+
+表达式支持下列常量和函数:
+
+- w
+- h
+
+    输入的宽和高
+- val
+
+    输入像素分量值
+- clipval
+
+    输入值，并且裁剪到`minval-maxval`范围内
+- maxval
+
+    输入像素分量的最大值
+- minval
+
+    输入像素分量的最小值 component.
+- negval
+
+    “负片”表示的分量值，它被裁剪到`minval-maxval`范围内，对应于`maxval-clipval+minval`.
+- clip(val)
+
+    对于`val`的计算值,裁剪到 `minval-maxval`范围内
+- gammaval(gamma)
+
+    伽马校正计算值像素分量的值，裁剪到 `minval-maxval`范围内，其对应于`pow((clipval-minval)/(maxval-minval)\,gamma)*(maxval-minval)+minval`
+
+所有表达式默认为"val"
+
+#### lut, lutrgb, lutyuv例子 ####
+- 输入图像的负片效果
+
+    lutrgb="r=maxval+minval-val:g=maxval+minval-val:b=maxval+minval-val"
+    lutyuv="y=maxval+minval-val:u=maxval+minval-val:v=maxval+minval-val"
+
+    等效于:
+
+    lutrgb="r=negval:g=negval:b=negval"
+    lutyuv="y=negval:u=negval:v=negval"
+- 亮度负片效果
+
+    lutyuv=y=negval
+- 移除色度分量，转换成灰度图像:
+
+    lutyuv="u=128:v=128"
+
+- 应用一个亮度燃烧效果:
+
+    lutyuv="y=2*val"
+- 移除绿色和蓝色分量（红色灰度图）:
+
+    lutrgb="g=0:b=0"
+- 设定固定的透明通道效果:
+
+    format=rgba,lutrgb=a="maxval-minval/2"
+- 以系数0.5进行伽玛亮度矫正:
+
+    lutyuv=y=gammaval(0.5)
+- 丢弃的亮度低有效位（减少细节，亮块化）:
+
+    lutyuv=y='bitand(val, 128+64+32)'
+
+### mergeplanes ###
+从一些视频流中混合颜色通道
+
+滤镜最多接受4路输入流，然后混合选用的(颜色)平面来输出。
+
+滤镜接受下面的选项：
+
+- mapping
+
+    设置输入到输出颜色映射，默认为0 mapping. Default is 0.
+
+    这个映射由一个位映射指定，它被描述为一个格式为`0xAa[Bb[Cc[Dd]]]`的十六进制数。其中`Aa`描述第一个用作输出的（颜色）平面，`A`设置采用那个输入流（0-3），`a`指定是输入流的那个分量（0-3，因为一个输入视频流最多有4个输入分量）。此后的`Bb`、`Cc`和`Dd`以此类推，分别指定第2到第4个输出映射关系。
+- format
+
+    设置输出像素格式，默认为`yuva444p` 
+
+#### mergeplanes例子 ####
+- 从三个灰度视频流混合为单个视频流（有相同的图像尺寸）:
+
+    [a0][a1][a2]mergeplanes=0x001020:yuv444p
+- 混合第一路的`yuv444p`和第二路的灰度视频到一个`yuva444p`:
+
+    [a0][a1]mergeplanes=0x00010210:yuva444p
+- 在yuva444p交换Y和A通道:
+
+    format=yuva444p,mergeplanes=0x03010200:yuva444p
+- 在`yuv420p`交换U和V输出到`yuv420p`:
+
+    format=yuv420p,mergeplanes=0x000201:yuv420p
+
+- 转换`rgb24`到`yuv444p`
+
+    format=rgb24,mergeplanes=0x000102:yuv444p
+
+### mcdeint ###
+应用反交错运动补偿
+
+它每帧需要一个输入字段，所以必须同`yadif=1/3`或者等效 一同使用。
+
+率接受下面的选项：
+
+- mode
+
+    设置反交错模式，有下列有效值：
+
+    ‘fast’
+    ‘medium’
+    ‘slow’
+
+        使用迭代的运动估计 
+    ‘extra_slow’
+
+        类似‘slow’,但使用多个参考帧
+
+    默认‘fast’.
+- parity
+
+    设置输入视频图片字段校验。它必须以下值之一:
+
+    ‘0, tff’
+
+        对应上场优先 
+    ‘1, bff’
+
+        对应下场优先 
+
+    默认 ‘bff’.
+- qp
+
+    设置内部使用的编码器按块量化参数设置(QP)
+
+    更高的值会导致一个更平滑的运动向量场但不最优个体向量。默认值是1。
+
+### mpdecimate ###
+减少对前帧变化不大的帧,以减少帧速率
+
+这个滤镜的主要作用是对非常低码率的编码进行预处理（例如面向拨号调整解调器应用的），不过理论上还可以用于修复发转的电视电影影片（影片转换成电视又转换回来）
+
+下面是选项介绍：
+
+- max
+
+    设置连续帧的最大数量,可以删除(如果正),或删除帧之间的最小间隔帧(如果负的) ，如果为0，则删除帧和前面删除帧没有关联（关系）
+
+    默认为0.
+- hi
+- lo
+- frac
+
+    设置删除阀值。
+
+    其中`hi`和`lo`是对于一个`8x8`像素块和代表实际像素值差异，所以阀值64对应与每个像素都有1个单位的差异，或者被完全不同的块覆盖
+
+    一个帧作为候选（被丢弃）则它没有超过`hi`个不同的`8x8`块和没有超过`frac`量的（1意味着整个图像）超过`lo`个不同的`8x8`块
+
+    默认值为`hi`是`64*12`,`lo`为`64*5`,`frac`为`0.33` 
+
+### negate ###
+否定输入视频
+
+它接受一个整数（参数）,如果非零它否定透明分量(如果可用)。默认值是0
+
+### noformat ###
+强制`libavfilter`不采用指定的像素格式来输入到下一个滤镜
+
+接受的参数为：
+
+- pix_fmts
+
+    是一个由 ’|’分隔的像素格式名列表，例如pix_fmts=yuv420p|monow|rgb24"
+
+#### noformat例子 ####
+- 强制不采用`yuv420p`的像素格式来输出到`vfilp`滤镜
+
+	noformat=pix_fmts=yuv420p,vflip
+- 转换输入到不是指定的像素格式
+
+	noformat=yuv420p|yuv444p|yuv410p
+
+### noise ###
+给视频添加噪点
+
+滤镜接受下面的选项：
+
+- all_seed
+- c0_seed
+- c1_seed
+- c2_seed
+- c3_seed
+
+    对指定像素分量或者整个像素设置噪点种子，默认为123457.
+- all_strength, alls
+- c0_strength, c0s
+- c1_strength, c1s
+- c2_strength, c2s
+- c3_strength, c3s
+
+    对指定像素分量或者整个像素设置噪点强度，默认为0，值范围[0, 100].
+- all_flags, allf
+- c0_flags, c0f
+- c1_flags, c1f
+- c2_flags, c2f
+- c3_flags, c3f
+
+    设置分量或者所有的标志，可能的标志有:
+
+    ‘a’
+
+        平均时间的噪点(平滑) 
+    ‘p’
+
+        混合随机噪点(半)规律
+    ‘t’
+
+        时间噪点（噪点模式在帧间变化） 
+    ‘u’
+
+        统一噪点 (gaussian外的) 
+
+#### noise例子 ####
+- 添加时间和统一的噪点给图像
+
+	noise=alls=20:allf=t+u
+
+### null ###
+不改变输入进行输出
+
+### ocv ###
+申请使用`libopencv`进行视频转换。
+
+要启用需要处理编译参数`--enable-libopencv`，且系统中要有`libopencv`的头和库。
+
+接受下面的参数：
+
+- filter_name
+
+    指定要使用的`libopencv`滤镜名
+- filter_params
+
+    对滤镜指定参数，如果不指定则采用具体滤镜默认参数
+
+在[`libopencv`官方文档](http://docs.opencv.org/master/modules/imgproc/doc/filtering.html)了解更多`libopencv`精确信息
+
+在`libopencv`中下面的滤镜被支持。
+#### dilate ####
+这个滤镜使用特定结构化的元素来扩张图像，其对应于`libopencv`中的函数`cvDilate`
+
+它接受的参数形式为:`struct_el|nb_iterations`
+
+其中`struct_el`代表了一个结构化元素，语法为：`colsxrows+anchor_xxanchor_y/shape`，其中`cols`和`rows`是结构元素的行和列数，`anchor_x`和`anchor_y`是锚点的坐标值，`shape`是结构化元素的图形，`shape`可能值是"rect"、 "cross"、 "ellipse"和 "custom"。如果`custom`被设置，它还必须跟一个格式为`=filename`来指定一个位图，其每个可打印字符对应于一个亮的像素。当定制的图形被使用，`cols`和`rows`被忽略，行和列的数有读取的文件决定。
+
+`struct_el`的默认值为`3x3+0x0/rect`
+
+`nb_iterations`指定迭代的次数，默认为1
+
+一些例子：
+- 采用默认值
+
+	ocv=dilate
+- Dilate采用了一个5x5的结构元素，且迭代2次
+
+	ocv=filter_name=dilate:filter_params=5x5+2x2/cross|2
+
+- 从文件`diamond.shape`读取图像，迭代2次
+
+	其中`diamond.shape`文件的内容为：
+>	
+	   *
+	  ***
+	 *****
+	  ***
+	   *
+
+	因为描述为定制，所以原来指定的行和列值被忽略：
+
+	ocv=dilate:0x0+2x2/custom=diamond.shape|2
+
+#### erode ####
+通过使用特定的结构化元素侵蚀一个图像。它对应于`libopencv`中的`cvErode`函数。
+
+它接受参数为：`struct_el:nb_iterations`，解释同[`dilate`](#dilate)
+
+#### smooth ####
+平滑输入视频
+
+滤镜接受的参数为：`type|param1|param2|param3|param4`
+
+其中`type`是应用的平滑类型，有 "blur", "blur_no_scale", "median", "gaussian", 或者"bilateral".默认为"gaussian"
+
+接下来的参数`param1`, `param2`, `param3`和`param4`依赖于所选的平滑类型，其中`param1`, `param2`接受正整数或0，`param3`和`param4`接受浮点数。其中`param1`的默认为3，其他的默认为0.
+
+这些参数对应于`libopencv`中的`cvSmooth`函数。
+
+### overlay ###
+把一个视频覆盖在另外一个上面
+
+它有两个输入，其中第一个输入是主要的输入会覆盖到第二个输入上
+
+它接受下面的参数（介绍见下）：
+
+- x
+- y
+
+    设置主要视频（在被覆盖视频上）的x和y坐标表达式，默认为0，如果表达式无效则会设置为一个巨大的值（在这种情况下相当于没有覆盖，即覆盖出现在非可视区域）
+- eof_action
+
+    在操作时遇到第二路输入的`EOF`信号时的处理，它接受下面的值之一：:
+
+    repeat
+
+        重复最后一帧（默认）
+    endall
+
+        同时结束两个流 
+    pass
+
+        把第一路输入作为输出 
+
+- eval
+
+    它设置何时计算x和y坐标值
+
+    它接受下面的值：
+
+    ‘init’
+
+        仅在滤镜初始化或命令处理时计算一次
+    ‘frame’
+
+        每帧计算 
+
+    默认‘frame’.
+- shortest
+
+    如果设置为1，强制以最短的输入时间终止输出，默认为0
+- format
+
+    设置输出格式，允许：
+
+    ‘yuv420’
+
+        强制为YUV420
+    ‘yuv422’
+
+        强制为YUV422
+    ‘yuv444’
+
+        强制为YUV444
+    ‘rgb’
+
+        强制为RGB 
+
+    默认 ‘yuv420’.
+- rgb (弃用的)
+
+    如果设置为1，强制滤镜接受输出是RGB颜色空间。默认为0，它已经被弃用，而是使用格式来代替。
+- repeatlast
+
+    如果设置为1，强制滤镜绘制最后一个覆盖帧直到结束流。如果设置为0则禁止这样的行为，默认为1 
+
+值`x`和`y`的表达式中接受下面的参数：.
+
+- main_w, W
+- main_h, H
+
+    主要输入流的宽和高
+- overlay_w, w
+- overlay_h, h
+
+    被覆盖流的宽和高
+- x
+- y
+
+    对于`x`和`y`的计算值，它在每帧中都计算
+- hsub
+- vsub
+
+    输出格式中的水平和垂直色度通道分量值，例如对于`yuv422p`像素格式，`hsub`是2 ，`vsub`是1
+- n
+
+    帧序数，从0开始计数
+- pos
+
+    输入帧在文件当中的偏移，如果未知则为`NAN`
+- t
+
+    时间码，以秒计。如果时间码未知则为`NAN`
+
+#### overlay命令 ####
+滤镜支持下面的命令：
+
+- x
+- y
+
+    修改覆盖输出的`x`和`y`坐标。它接受的语法同于前面对应的选项
+
+    如果指定的表达式无效，则保持当前值
+
+#### overlay例子 ####
+- 在据右下10像素位置绘制主要视频:
+
+    overlay=main_w-overlay_w-10:main_h-overlay_h-10
+
+    采用名字选项，则上面的变成:
+
+    overlay=x=main_w-overlay_w-10:y=main_h-overlay_h-10
+- 插入一个透明的PNG标记到右下。协同`ffmpeg`工具集利用`-filter_complex`选项来实现:
+
+    ffmpeg -i input -i logo -filter_complex 'overlay=10:main_h-overlay_h-10' output
+- 插入2个不同的透明PNG标志，（第二个在右下角）:
+
+    ffmpeg -i input -i logo1 -i logo2 -filter_complex 'overlay=x=10:y=H-h-10,overlay=x=W-w-10:y=H-h-10' output
+- 在视频上面添加一个透明颜色层，其中`WxH`指定了输入视频的宽和高:
+
+    color=color=red@.3:size=WxH [over]; [in][over] overlay [out]
+- 同时播放原始和过滤版（协同了`deshake`滤镜）:
+
+    ffplay input.avi -vf 'split[a][b]; [a]pad=iw*2:ih[src]; [b]deshake[filt]; [src][filt]overlay=w'
+
+    同上效果，但利用命令完成
+
+    ffplay input.avi -vf 'split[b], pad=iw*2[src], [b]deshake, [src]overlay=w'
+- 从2秒开始一个从左到右的滑动叠加:
+
+    overlay=x='if(gte(t,2), -w+(t-2)*20, NAN)':y=0
+- 组合2个输入，一个放置在一边:
+
+    ffmpeg -i left.avi -i right.avi -filter_complex "
+    nullsrc=size=200x100 [background];
+    [0:v] setpts=PTS-STARTPTS, scale=100x100 [left];
+    [1:v] setpts=PTS-STARTPTS, scale=100x100 [right];
+    [background][left]       overlay=shortest=1       [background+left];
+    [background+left][right] overlay=shortest=1:x=100 [left+right]
+    "
+
+- 在10-20秒应用一个`delogo`滤镜
+
+    ffmpeg -i test.avi -codec:v:0 wmv2 -ar 11025 -b:v 9000k
+    -vf '[in]split[split_main][split_delogo];[split_delogo]trim=start=360:end=371,delogo=0:0:640:480[delogoed];[split_main][delogoed]overlay=eof_action=pass[out]'
+    masked.avi
+- 串联多个`overlays`滤镜:
+
+    nullsrc=s=200x200 [bg];
+    testsrc=s=100x100, split=4 [in0][in1][in2][in3];
+    [in0] lutrgb=r=0, [bg]   overlay=0:0     [mid0];
+    [in1] lutrgb=g=0, [mid0] overlay=100:0   [mid1];
+    [in2] lutrgb=b=0, [mid1] overlay=0:100   [mid2];
+    [in3] null,       [mid2] overlay=100:100 [out0]
+
+### owdenoise ###
+应用超完备小波降噪
+
+滤镜接受下面的选项：
+
+- depth
+
+    设置深度
+
+    大的值将在低频部分降噪明显，但速度很慢
+
+    值范围8-16，默认为8
+- luma_strength, ls
+
+    设置亮度强度
+
+    为0-1000的双精度值，默认为1.0
+- chroma_strength, cs
+
+    设置色度强度
+
+    为0-1000的双精度值，默认为1.0
+
+### pad ###
+在原始输入的`x`和`y`坐标上填充输入图像（多处部分用颜色填充）
+
+它接受下面参数：
+
+width, w
+height, h
+
+    指定输出尺寸的表达式。如果值为0，则输入图像尺寸作为输出尺寸
+
+    在`width`表达式中可以引用`height`值，反之亦然
+
+    默认都是0
+x
+y
+
+    指定输入图像在输出中放置的坐标据上边和左边的值
+
+    其中`x`可以引用`y`值计算，反之亦然
+
+    默认为0.
+color
+
+    指定添加区域的颜色。语法参考[颜色/color](ffmpeg-doc-cn-07.md#颜色Color)章节的介绍
+
+    默认为"black". 
+
+对于`width`, `height`, `x`和`y`选项的表达式，可以包含下面的常量:
+
+in_w
+in_h
+
+    输入宽和高
+iw
+ih
+
+    同于`in_w`和`in_h`
+out_w
+out_h
+
+    输出的宽和高（输出添加的区域），它由`width`和`height`表达式指定
+ow
+oh
+
+    同于`out_w`和`out_h`
+x
+y
+
+    指定的x和y的偏移（在另外一个表达式中），如果不指定则为`NAN`
+a
+
+    同于`iw / ih`
+sar
+
+    输入样本点长宽比
+dar
+
+    输入视频长宽比，它等于`(iw / ih) * sar`
+hsub
+vsub
+
+    水平和垂直色度分量值，例如对`yuv422p`像素格式，`hsub`为2，`vsub`为1 
+
+#### pad例子 ####
+- 在（0，40）填充`violet`颜色到输入视频，输出视频为`640x480`
+
+	pad=640:480:0:40:violet
+
+    其等效于：
+
+    pad=width=640:height=480:x=0:y=40:color=violet
+- 把图像放置在原始输入扩大3/2倍的衬底中间位置:
+
+    pad="3/2*iw:3/2*ih:(ow-iw)/2:(oh-ih)/2"
+- 输出到一个正方形衬底上，衬底的变长是输入图像宽和高中的大的一个值，放置在正中:
+
+    pad="max(iw\,ih):ow:(ow-iw)/2:(oh-ih)/2"
+- 输出成为有16:9的长宽比的衬底上，水平中置图像（其他比例视频转16:9视频，但不拉伸放缩的效果）:
+
+    pad="ih*16/9:ih:(ow-iw)/2:(oh-ih)/2"
+- 在合成视频的情况下，为了正确设置显示，有必要利用`sar`设置表达式:
+
+    (ih * X / ih) * sar = output_dar
+    X = output_dar / sar
+
+    因此需要修正前例为:
+
+    pad="ih*16/9/sar:ih:(ow-iw)/2:(oh-ih)/2"
+- 双倍输入视频尺寸，把输入放置在右下区域（占输出区域的右下1/4）:
+
+    pad="2*iw:2*ih:ow-iw:oh-ih"
+
+### palettegen ###
+对整个视频产生一个调色板
+
+它接受下面的选项：
+
+- max_colors
+
+    设置调色板最大数量。**注意**调色板仍包含256个色彩，只是没有用到的色彩都被设置为黑色了
+- reserve_transparent
+
+    创建一个255色调色板，最后一个存储颜色。GIF优化保留透明的颜色是非常有用的。如果没有设置,那么最大的颜色调色板将达到256。你可能对于某个独立的图像想要禁用该选项。默认设置是`default`
+- stats_mode
+
+    设置统计模式
+
+    接受下面值:
+
+    ‘full’
+
+        计算全帧直方图
+    ‘diff’
+
+        只计算与前一帧的差异部分。这将更关注输入中变化的部分（运动的部分）,如果背景是静态的。
+
+    默认为full. 
+
+#### palettegen例子 ####
+- 生成一个调色板
+
+	ffmpeg -i input.mkv -vf palettegen palette.png
+
+### paletteuse ###
+使用一个调色板来处理输入视频流中的样本点转换
+
+滤镜接受2个输入，一个视频输入流和一个调色板。调色板必须是256个像素的图像（即有256个颜色）
+
+它接受下面选项：
+
+- dither
+
+    选择抖动模式，可用算法有:
+
+    ‘bayer’
+
+        顺序8x8 bayer抖动(确定的) 
+    ‘heckbert’
+
+        由Paul Heckbert定义与1982年的抖动算法（简单的错误扩散）**注意**这个抖动有时被认为是“错误”的，而仅作为参考 
+    ‘floyd_steinberg’
+
+        Floyd 和Steingberg抖动(错误扩散) 
+    ‘sierra2’
+
+        Frankie Sierra抖动第二版(错误扩散) 
+    ‘sierra2_4a’
+
+        Frankie Sierra抖动第二版的"简化" (错误扩散) 
+
+    默认为sierra2_4a.
+- bayer_scale
+
+    当bayer抖动算法被选取，这个选项将定义用作调色板规模（多少交叉——混合是可见的）。一个小的值意味着更多可见的且更少的条纹，高的值意味更少可见可能更多的条纹。
+
+    值范围为[0,5]，默认为2
+- diff_mode
+
+    如果设置，定义区域过程
+
+    ‘rectangle’
+
+        只有改变的矩形区域会进行再加工. 这类似于GIF裁剪/抵消压缩机制。它用来加快速度，对于只要部分改变时，如用例，只有一个矩形移动（边界）区域，且限制误差范围抖动（它会导致更多的确定性产出，如果现场没有太大的改变,它可以减少噪音且更好的GIF压缩移动） 
+
+    默认为none. 
+
+#### paletteuse例子 ####
+- 利用`palette`（调色板可由[`palettegen`](#palettegen)产生）编码输出GIF
+
+	ffmpeg -i input.mkv -i palette.png -lavfi paletteuse output.gif
+
+### perspective ###
+采用正确的视角记录视频，而不是垂直于平面
+
+接受参数的介绍如下：
+
+- x0
+- y0
+- x1
+- y1
+- x2
+- y2
+- x3
+- y3
+
+    对左上、右上、左下和右下各点设置表达式。默认为`0:0:W:0:0:H:W:H`表示不改变视角。如果场景选项是对源设置（`sense=0`），那么将发送指定点给目标。如果是对目标设置的（`sense=1`），则对应的源将被送到指定坐标
+
+    表达式接受下面的变量:
+
+    W
+    H
+
+        视频帧的宽和高 
+
+- interpolation
+
+    为透视校正设置插值
+
+    允许下面的值:
+
+    ‘linear’
+    ‘cubic’
+
+    默认为‘linear’.
+- sense
+
+    设置协调选项的解释.
+
+    它接受值为:
+
+    ‘0, source’
+
+        表明前面`x0y0x1y1x2y2x3y3`是对源设置的
+    ‘1, destination’
+
+        表明前面`x0y0x1y1x2y2x3y3`是对目标设置的
+
+       	默认为‘source’. 
+
+### phase ###
+延迟隔行视频一段时间以便现场秩序变化
+
+用于解决PAL制下电影到视频转换中的场序问题
+
+接受参数介绍见下：
+
+- mode
+
+    设置相位方法，它允许的值为：
+
+    ‘t’
+
+        捕获是上场优先，要转换为下场优先3，滤镜会延迟下场
+    ‘b’
+
+        捕获是下场优先，要转为上场优先，滤镜会延迟上场。
+    ‘p’
+
+        捕获和输出相同场序。这个模式存在文档中引用的其他选项，如果你真的选择它，滤镜将什么也不做。
+    ‘a’
+
+        捕获字段自动确定场序标志，转换则相反。滤镜根据相应标识在逐帧的基础上自动选择' t '和' b '。如果没有包含有效的指示字段，则同于`u`
+    ‘u’
+
+        捕获模式未知或者不定，转换时则相反。滤镜通过分析自动选择 ‘t’ 和 ‘b’实现最佳匹配
+    ‘T’
+
+        捕获是上场优先，转换未知或者不定。滤镜通过图像分析选择`t`和`p`
+    ‘B’
+
+        捕获是下场优先，转换未知或者不定。滤镜通过图像分析选择`b`和`p`
+    ‘A’
+
+        捕获根据标志确定，滤镜由此选择`t`、`b`和`p`，如果没有有效的标志信息，则同于`U`，这是默认模式
+    ‘U’
+
+        捕获和转换都未知，根据检测自动选择`t`、`b`和`p`以使最佳匹配
+
+### pixdesctest ###
+像素格式检测测试滤镜，主要用于内部测试。输出视频等于输入视频
+
+例如：
+
+	format=monow，pixdesctest
+
+可以用来测试monowhite像素格式描述是否符合定义
+
+### pp ###
+使用指定的`libpostproc`后处理`subfilters`链。这个库会自动选择一个`GPL`编译（--enable-gpl）。`subfilters`必须是由`/`分隔，可以利用`-`来禁用。每个`subfilter`有长或短的选项名，例如`dr/dering`
+
+滤镜接受下面的选项：
+
+- subfilters
+
+    指定subfilters字符串 
+
+所有subfilters有共同选项来确定其范围，它们是:
+
+a/autoq
+
+    对subfilter的质量等级
+c/chrom
+
+    同时做色差和亮度(默认).
+y/nochrom
+
+    只做亮度过滤 (无色差处理).
+n/noluma
+
+    只做色差过滤 (无亮度处理). 
+
+这些选项可以通过`|`附加在`subfilter`名后面
+
+有效的`subfilter`有：
+
+hb/hdeblock[|difference[|flatness]]
+
+    水平解封滤镜
+
+    difference
+
+        差异因素,高值意味着更多的解封(默认值:32)。
+    flatness
+
+        平面度阈值,降低值意味着更多的解封(默认值:39)。
+
+vb/vdeblock[|difference[|flatness]]
+
+    垂直解封滤镜
+
+    difference
+
+        差异因素,高值意味着更多的解封(默认值:32)。
+    flatness
+
+        平面度阈值,降低值意味着更多的解封(默认值:39)。
+
+ha/hadeblock[|difference[|flatness]]
+
+    准确的水平解封滤镜
+
+    difference
+
+        差异因素,高值意味着更多的解封(默认值:32)。
+    flatness
+
+        平面度阈值,降低值意味着更多的解封(默认值:39)。
+
+va/vadeblock[|difference[|flatness]]
+
+    准确的垂直解封滤镜
+
+    difference
+
+        差异因素,高值意味着更多的解封(默认值:32)。
+    flatness
+
+        平面度阈值,降低值意味着更多的解封(默认值:39)。
+
+水平和垂直解封过滤器共享`difference`和`flatness`,因此不能设置平面度值不同的水平和垂直的阈值。
+
+h1/x1hdeblock
+
+    实验的水平解封滤镜
+v1/x1vdeblock
+
+    实验的垂直解封滤镜
+dr/dering
+
+    去振铃滤镜
+tn/tmpnoise[|threshold1[|threshold2[|threshold3]]], temporal noise reducer
+
+    threshold1
+
+        larger -> stronger filtering /大->强滤镜
+    threshold2
+
+        larger -> stronger filtering /大->强滤镜
+    threshold3
+
+        larger -> stronger filtering /大->强滤镜
+
+al/autolevels[:f/fullyrange], automatic brightness / contrast correction
+
+    f/fullyrange
+
+        拉伸亮度到0-255范围 
+
+lb/linblenddeint
+
+    通过`(1 2 1)`滤镜线性混合`deinterlacing`滤镜的去交错块 
+li/linipoldeint
+
+    每秒通过线性插值`deinterlacing`滤镜的去交错块
+ci/cubicipoldeint
+
+    每秒通过立方插值`deinterlacing`滤镜的去交错块
+md/mediandeint
+
+    每秒通过中值滤波`deinterlacing`滤镜的去交错块
+fd/ffmpegdeint
+
+    每秒通过线性(-1 4 2 4 -1)滤波来处理`deinterlacing`滤镜的去交错块
+l5/lowpass5
+
+    通过`(-1 2 6 2 -1)`滤波处理`deinterlacing`滤镜的去交错块
+fq/forceQuant[|quantizer]
+
+    覆盖指定一个从输入到输出指示不变的量化器
+
+    quantizer
+
+        使用的Quantizer（量化器） 
+
+de/default
+
+    默认的`pp`滤镜组合 (hb|a,vb|a,dr|a)
+fa/fast
+
+    快的`pp`滤镜组合 (h1|a,v1|a,dr|a)
+ac
+
+    高品质`pp`滤镜组合(ha|a|128|7,va|a,dr|a) 
+
+
+#### pp例子 ####
+- 应用水平和垂直解封，去交错和自动亮度/对比度:
+
+    pp=hb/vb/dr/al
+- 应用默认的滤镜但不包括自动亮度/对比度:
+
+    pp=de/-al
+- 应用默认滤镜且包括瞬时降噪A:
+
+    pp=default/tmpnoise|1|2|3
+- 应用亮度解封，自动根据可用的CPU时间开关垂直解封:
+
+    pp=hb|y/vb|a
+
+### pp7 ###
+应用`Postprocessing`滤镜7.它是[`spp`](#spp)滤镜的变通，类似于 spp =6 或者7的点DCT。是有中心样本使用者IDCT后
+
+滤镜接受下面的选项：
+
+- qp
+
+    强制设置的量化参数，接受一个0-63的整数，如果没有设置，将使用视频流的`QP`值（如果可用）
+- mode
+
+    设置阀值模式，可用的是:
+
+    ‘hard’
+
+        设置为硬阀值 
+    ‘soft’
+
+        设置为软阀值（更好的de-ringing效果,但可能变得更模糊）
+    ‘medium’
+
+        设置中度阀值 (最好的效果，默认)
+
+### psnr ###
+两个输入视频之间的平均,最大和最小峰值信噪比(PSNR-Peak Signal to Noise Ratio)表示。
+
+滤镜接受2路输入视频，其中第一个输入被认为是“主要”的源，将不改变的进行输出，第二输入作为“参考”视频进行PSNR计算
+
+两个视频必须有相同的分辨率和像素格式才能正常工作。而且假定了有相同的输入帧来进行比较。
+
+获得的平均PSNR会被输出到日志系统
+
+滤镜存储每帧积累MSE（均方误差），并在处理末尾记录帧平均值，其公示为：
+
+	PSNR = 10*log10(MAX^2/MSE)
+
+这里`MAX`是图像中每个分量最大值的平均值。
+
+滤镜接受参数的介绍见下：
+
+- stats_file, f
+
+    如果指定，滤镜将采用指定的文件来保存每个帧的PSNR值
+
+在`stats_file`指定的文件中将包含一个`key/value`序列，其是每两个比较帧的相应值
+
+`stats_file`指定的文件中各个key的介绍如下：:
+
+- n
+
+    帧序数，从1计数
+- mse_avg
+
+    对比帧逐像素均方误差，平均值是基于整个图像所有分量
+- mse_y, mse_u, mse_v, mse_r, mse_g, mse_g, mse_a
+
+    对比帧逐像素分量均方误差，后缀就是分量类型
+- psnr_y, psnr_u, psnr_v, psnr_r, psnr_g, psnr_b, psnr_a
+
+    对比帧分量峰值信噪比，后缀表明分量类型
+
+例如：
+
+	movie=ref_movie.mpg, setpts=PTS-STARTPTS [main];
+	[main][ref] psnr="stats_file=stats.log" [out]
+
+在这个例子中，输入和`ref_movie.mpg`文件比较，每个单独帧的`PSNR`存储在`stats.log`中
+
+### pullup ###
+下拉转换（逆电视电影）滤镜。能够处理混合`hard-telecine`，24000/1001帧率逐行和30000/1001帧率逐行内容。
+
+这个`pullup`滤镜利用上下文进行决策。它是无状态的，不锁定模式，但不期待有以下字段可以进行匹配识别和重建逐行帧。
+
+为了能产生一个包含偶数帧率的内容，在`pullup`后插入一个滤镜，如果输入帧率是29.97fps使用`fps=24000/1001`，如果输入是30fps或者25fps则`fps=24`
+
+滤镜接受下面的选项：
+
+- jl
+- jr
+- jt
+- jb
+
+    这些选项设置“垃圾”部分（会被忽略的左、右、上和下部分），左和右是8像素单位的整数倍，上和下是2行的整数被。默认每边8像素
+- sb
+
+    设置严格的打断。设置为1将减少滤镜生成一个偶尔不匹配框架的机会，但也可能在高运动序列下导致帧数下降。设置为-1将更容易过滤匹配，则可以帮助处理视频内轻微的模糊，但也可能导致输出交错帧，默认为0
+- mp
+
+    设置度量标准平面（通道），允许值有:
+
+    ‘l’
+
+        采用亮度通道
+    ‘u’
+
+        采用色差蓝通道
+    ‘v’
+
+        采用色差红 
+
+    这个选项被设置为使用指定的通道作为滤镜计算平面，而替换默认的亮度通道计算。它可能会提高精度（如果源材料十分干净），但更可能是降低精度，特别是色度噪声（彩虹效应）或灰度视频（无色差信号——这时结果是随机的）。设置它的主要目的是减少CPU负载，使得`pullup`在慢的计算机上可以减速停止
+
+为了最好的效果（而不在输出中复制帧）且尽量让输出帧率接近，例如要反转一个NTSC输入：
+
+	ffmpeg -i input -vf pullup -r 24000/1001 ...
+
+### qp ###
+改变视频的量化参数（QP）
+
+滤镜接受下面选项：
+- qp
+
+	设置量化参数表达式
+
+这个表达式通过`eval` API计算，可以包含以下常量：
+
+- known
+
+    1表示索引不是129，否则为0
+- qp
+
+    从-129到128的时序索引
+
+#### qp例子 ####
+- 一个方程：
+
+	qp=2+2*sin(PI*qp)
+
+### removelogo ###
+抑制台标，使用一个图像文件来确定哪些像素组成台标。它通过采用台标相近像素来填充台标位置。
+
+率接受下面选项：
+
+- filename， f
+
+	设置一个过滤位图文件，它指示了要抑制的台标图像信息，格式可以是`libavformat`中任何有效格式。图像的宽和高必须匹配要处理的视频流。
+
+像素依据这样的规则指示台标：为0的位置不属于台标部分，非0的值则是台标的部分。如果使用白色（255）黑色（0）来标志是最安全的。过滤位图建议是带黑底的台标截屏，然后使用一个阀值标志台标周围的虚化。
+
+若必要，可以手动固定小斑点。**记住**如果台标像素没有被标注到，则滤镜质量会大大降低。标记过多的像素不会有太多伤害，但会增加需要模糊处理信息，对于一个大的图标过多额外像素会减慢处理。
+
+### repeatfields ###
+这个滤镜根据其价值使用视频`ES`头中和重复字段中的`repeat_field`标志
+
+### rotate ###
+任意旋转视频角度（以弧度值表示）
+
+可选参数介绍如下：
+
+- angle, a
+
+    设置一个表示要旋转角度的弧度表达式（中心旋转）。负值表示逆时针旋转，默认为0
+
+    这个表达式会每帧计算
+- out_w, ow
+
+    设置输出宽表达式，默认为"iw",表达式只在配置时计算一次
+- out_h, oh
+
+    设置输出高表达式，默认为"iw",表达式只在配置时计算一次
+- bilinear
+
+    如果为1则允许双线性插值，为0禁用，默认为1
+- fillcolor, c
+
+    设置填补颜色（图像旋转后水平），颜色的语法见[颜色/color](ffmpeg-doc-cn-07.md#颜色Color)章节的介绍，如果指定为`none`表示没有背景色输出（例如背景色不显示——相当于透明）
+
+    默认为"black". 
+
+角度和输出大小的表达式可以包含以下常量和函数:
+
+- n
+
+    输入帧序数，从0计数（开始滤镜时），如果早于滤镜第一帧则为`NAN`
+- t
+
+    输入帧按秒时间，当滤镜被配置时为0，早于则为`NAN`
+- hsub
+- vsub
+
+    水平和垂直色度分量。例如对像素格式`yuv422p`，`hsub`为2，`vsub`为1
+- in_w, iw
+- in_h, ih
+
+    输入的视频宽和高
+- out_w, ow
+- out_h, oh
+
+    输出的宽和高，它指定了要填补的宽和高表达式
+- rotw(a)
+- roth(a)
+
+    计算要完整包含旋转`a`弧度图像的最小的宽和高
+
+    它只能用于计算`out_w`和`out_h`的表达式 
+
+#### rotate例子 ####
+- 顺时针旋转PI/6:
+
+    rotate=PI/6
+- 逆时针旋转PI/6 :
+
+    rotate=-PI/6
+- 顺时针旋转45度:
+
+    rotate=45*PI/180
+- 应用一个恒定选择周期T,开始角度为PI/3:
+
+    rotate=PI/3+2*PI*t/T
+- 让输入旋转振荡T秒，有A弧度振幅:
+
+    rotate=A*sin(2*PI/T*t)
+- 旋转视频，输出能包含所有内容:
+
+    rotate='2*PI*t:ow=hypot(iw,ih):oh=ow'
+- 旋转视频，减少输出大小且没有背景:
+
+    rotate=2*PI*t:ow='min(iw,ih)/sqrt(2)':oh=ow:c=none
+
+#### rotate命令 ####
+滤镜接受下面的命令：
+- a, angle
+
+	设置表示角度的弧度表达式，命令接受同对于选项相同的语法。
+
+	如果指定的表达式无效，则保持当前值（不旋转）
+
+### sab ###
+应用形状自适应模糊
+
+滤镜接受下面选项：
+
+- luma_radius, lr
+
+    设置亮度模糊强度，值范围0.1-4.0,默认1.0。更大的值会导致图像更模糊，但更慢
+- luma_pre_filter_radius, lpfr
+
+    设置亮度预处理半径，值范围为0.1-2.0，默认值1.0.
+- luma_strength, ls
+
+    设置被认为是同一像素的最大亮度区别。值范围0.1-100.0，默认1.0.
+- chroma_radius, cr
+
+    设置色差模糊强度，值范围0.1-4.0,默认1.0。更大的值会导致图像更模糊，但更慢
+- chroma_pre_filter_radius, cpfr
+
+    设置色差预处理半径，值范围为0.1-2.0
+- chroma_strength, cs
+
+    设置被认为是同一像素的最大色差区别。值范围0.1-100.0
+
+每个色度选项值，如果没有明确指定，则选用对应亮度选项值
+
+### scale ###
+对输入视频放缩（修改尺寸），利用了`libswscale`库。
+
+这个`scale`滤镜强制输出与输入有相同的长宽比，但改变输出样本点长宽比。
+
+如果输入图像格式不同于下一个滤镜要求的格式，这个`scale`滤镜可以转换以符合要求。
+
+#### scale选项 ####
+滤镜接受下面介绍的选项或任何`libswscale`放缩支持的选项。
+
+参考 (ffmpeg-scaler)ffmpeg-scaler手册中以了解完整的放缩选项。
+
+- width, w
+- height, h
+
+    Set the output video dimension expression. Default value is the input dimension.
+
+    If the value is 0, the input width is used for the output.
+
+    If one of the values is -1, the scale filter will use a value that maintains the aspect ratio of the input image, calculated from the other specified dimension. If both of them are -1, the input size is used
+
+    If one of the values is -n with n > 1, the scale filter will also use a value that maintains the aspect ratio of the input image, calculated from the other specified dimension. After that it will, however, make sure that the calculated dimension is divisible by n and adjust the value if necessary.
+
+    See below for the list of accepted constants for use in the dimension expression.
+- interl
+
+    Set the interlacing mode. It accepts the following values:
+
+    ‘1’
+
+        Force interlaced aware scaling.
+    ‘0’
+
+        Do not apply interlaced scaling.
+    ‘-1’
+
+        Select interlaced aware scaling depending on whether the source frames are flagged as interlaced or not. 
+
+    Default value is ‘0’.
+- flags
+
+    Set libswscale scaling flags. See (ffmpeg-scaler)the ffmpeg-scaler manual for the complete list of values. If not explicitly specified the filter applies the default flags.
+- size, s
+
+    Set the video size. For the syntax of this option, check the (ffmpeg-utils)"Video size" section in the ffmpeg-utils manual.
+- in_color_matrix
+- out_color_matrix
+
+    Set in/output YCbCr color space type.
+
+    This allows the autodetected value to be overridden as well as allows forcing a specific value used for the output and encoder.
+
+    If not specified, the color space type depends on the pixel format.
+
+    Possible values:
+
+    ‘auto’
+
+        Choose automatically.
+    ‘bt709’
+
+        Format conforming to International Telecommunication Union (ITU) Recommendation BT.709.
+    ‘fcc’
+
+        Set color space conforming to the United States Federal Communications Commission (FCC) Code of Federal Regulations (CFR) Title 47 (2003) 73.682 (a).
+    ‘bt601’
+
+        Set color space conforming to:
+
+            ITU Radiocommunication Sector (ITU-R) Recommendation BT.601
+            ITU-R Rec. BT.470-6 (1998) Systems B, B1, and G
+            Society of Motion Picture and Television Engineers (SMPTE) ST 170:2004 
+
+    ‘smpte240m’
+
+        Set color space conforming to SMPTE ST 240:1999. 
+
+- in_range
+- out_range
+
+    Set in/output YCbCr sample range.
+
+    This allows the autodetected value to be overridden as well as allows forcing a specific value used for the output and encoder. If not specified, the range depends on the pixel format. Possible values:
+
+    ‘auto’
+
+        Choose automatically.
+    ‘jpeg/full/pc’
+
+        Set full range (0-255 in case of 8-bit luma).
+    ‘mpeg/tv’
+
+        Set "MPEG" range (16-235 in case of 8-bit luma). 
+
+- force_original_aspect_ratio
+
+    Enable decreasing or increasing output video width or height if necessary to keep the original aspect ratio. Possible values:
+
+    ‘disable’
+
+        Scale the video as specified and disable this feature.
+    ‘decrease’
+
+        The output video dimensions will automatically be decreased if needed.
+    ‘increase’
+
+        The output video dimensions will automatically be increased if needed.
+
+    One useful instance of this option is that when you know a specific device’s maximum allowed resolution, you can use this to limit the output video to that, while retaining the aspect ratio. For example, device A allows 1280x720 playback, and your video is 1920x800. Using this option (set it to decrease) and specifying 1280x720 to the command line makes the output 1280x533.
+
+    Please note that this is a different thing than specifying -1 for w or h, you still need to specify the output resolution for this option to work.
+
+The values of the w and h options are expressions containing the following constants:
+
+- in_w
+- in_h
+
+    The input width and height
+- iw
+- ih
+
+    These are the same as in_w and in_h.
+- out_w
+- out_h
+
+    The output (scaled) width and height
+- ow
+- oh
+
+    These are the same as out_w and out_h
+- a
+
+    The same as iw / ih
+- sar
+
+    input sample aspect ratio
+- dar
+
+    The input display aspect ratio. Calculated from (iw / ih) * sar.
+- hsub
+- vsub
+
+    horizontal and vertical input chroma subsample values. For example for the pixel format "yuv422p" hsub is 2 and vsub is 1.
+- ohsub
+- ovsub
+
+    horizontal and vertical output chroma subsample values. For example for the pixel format "yuv422p" hsub is 2 and vsub is 1. 
+
+#### scale例子 ####
+
+    Scale the input video to a size of 200x100
+
+    scale=w=200:h=100
+
+    This is equivalent to:
+
+    scale=200:100
+
+    or:
+
+    scale=200x100
+
+    Specify a size abbreviation for the output size:
+
+    scale=qcif
+
+    which can also be written as:
+
+    scale=size=qcif
+
+    Scale the input to 2x:
+
+    scale=w=2*iw:h=2*ih
+
+    The above is the same as:
+
+    scale=2*in_w:2*in_h
+
+    Scale the input to 2x with forced interlaced scaling:
+
+    scale=2*iw:2*ih:interl=1
+
+    Scale the input to half size:
+
+    scale=w=iw/2:h=ih/2
+
+    Increase the width, and set the height to the same size:
+
+    scale=3/2*iw:ow
+
+    Seek Greek harmony:
+
+    scale=iw:1/PHI*iw
+    scale=ih*PHI:ih
+
+    Increase the height, and set the width to 3/2 of the height:
+
+    scale=w=3/2*oh:h=3/5*ih
+
+    Increase the size, making the size a multiple of the chroma subsample values:
+
+    scale="trunc(3/2*iw/hsub)*hsub:trunc(3/2*ih/vsub)*vsub"
+
+    Increase the width to a maximum of 500 pixels, keeping the same aspect ratio as the input:
+
+    scale=w='min(500\, iw*3/2):h=-1'
+
+
+
