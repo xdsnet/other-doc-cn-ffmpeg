@@ -5027,7 +5027,7 @@ show
 
     设置帧数，其值以表达式 (value*2 + 1)用作低通来滤除摄像机运动，默认为10.
 
-    例如对于设置为10则意味着21帧被使用（过去10帧和接下来10帧）来平滑摄像机移动。更大的值可以得到一个更平滑视频，但限制摄像机加速度(pan（平底——打圈？）/倾斜 移动)。0表示摄像机是静止的
+    例如对于设置为10则意味着21帧被使用（过去10帧和接下来10帧）来平滑摄像机移动。更大的值可以得到一个更平滑视频，但限制摄像机加速度(平底锅摇/倾斜 移动)。0表示摄像机是静止的
 - optalgo
 
     设置相机路径优化算法
@@ -5335,45 +5335,45 @@ show
 
 - in_w, iw
 
-    Input width.
+    输入的宽
 - in_h, ih
 
-    Input height.
+    输入高
 - out_w, ow
 
-    Output width.
+    输出宽
 - out_h, oh
 
-    Output height.
+    输出高
 - in
 
-    Input frame count.
+    输入帧计数
 - on
 
-    Output frame count.
+    输出帧计数
 - x
 - y
 
-    Last calculated ’x’ and ’y’ position from ’x’ and ’y’ expression for current input frame.
+    最后计算的x和y对于当前输入帧的x和y表达式。
 - px
 - py
 
-    ’x’ and ’y’ of last output frame of previous input frame or 0 when there was not yet such frame (first input frame).
+    之前输入帧对应的最后输出帧最后计算’x’ 和 ’y’，或者为0（第一个输入帧）
 - zoom
 
-    Last calculated zoom from ’z’ expression for current input frame.
+    当前输入帧对应的最后`z`表达式计算得出的放大系数
 - pzoom
 
-    Last calculated zoom of last output frame of previous input frame.
+    前一输入帧前最后输出帧计算的放大系数
 - duration
 
-    Number of output frames for current input frame. Calculated from ’d’ expression for each input frame.
+    当前输入帧对应的输出帧数。对每个输入帧计算`d`值
 - pduration
 
-    输出帧为之前创建输入帧的数量
+    前一输入帧之前创建输出帧的数量
 - a
 
-    有理数 = 输入 width / 输入 height
+    有理数 = iw/ih
 - sar
 
     样本长宽比
@@ -5381,8 +5381,14 @@ show
 
     显示长宽比
 
- 
 #### zoompan例子 ####
+- 推近到1.5 并且同时在中心附近摇的效果:
+
+    zoompan=z='min(zoom+0.0015,1.5)':d=700:x='if(gte(zoom,1.5),x,x+1/a)':y='if(gte(zoom,1.5),y,y+1)':s=640x360
+- 推近到1.5 并且同时以中心摇的效果:
+
+    zoompan=z='min(zoom+0.0015,1.5)':d=700:x='iw/2-(iw/zoom/2)':y='ih/2-(ih/zoom/2)'
+
 
 
 
