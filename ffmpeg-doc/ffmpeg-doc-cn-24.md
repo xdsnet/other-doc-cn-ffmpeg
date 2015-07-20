@@ -184,7 +184,7 @@ HTTP (Hyper Text Transfer Protocol)协议
 - listen
 
     如果设置为1，将使用实验性质的HTTP服务。它可以用于在输出中指定数据（例如）——对输出文件，或者通过`HTTP POST`读取输入端数据
-
+```    
     # 服务器段（发送）:
     ffmpeg -i somefile.ogg -c copy -listen 1 -f ogg http://server:port
 
@@ -201,7 +201,7 @@ HTTP (Hyper Text Transfer Protocol)协议
 
     # 客户端也可以联用在`wget`中
     wget --post-file=somefile.ogg http://server:port
-
+```
 ### HTTP Cookie ###
 一些HTTP请求将被拒绝,除非cookie值按要求进行传递。`cookies`选项允许对cookie进行指定。至少cookie需要指定一个路径和域。HTTP请求将自动匹配域和路径，并把包含的cookie值放置HTTP Cookie头中。多个cookie可以由换行分隔。
 
