@@ -1,4 +1,4 @@
-## 14 字幕解码器 ##
+## 14 字幕解码器
 
 ### dvdsub ###
 解码用于dvd的bitmap类型字幕解码。该类型也用于vobsub文件和一些Matroska文件。
