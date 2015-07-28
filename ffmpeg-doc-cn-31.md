@@ -1,4 +1,4 @@
-## 31 graph2dot ##
+## 31 graph2dot
 FFmpeg工具目录下包含一个`graph2dot`程序可以用来分析滤镜链图描述并产生用`dot`语言描述的对应文本表示。
 
 调用命令：
