@@ -1,4 +1,4 @@
-## 28 重采样选项 ##
+## 28 重采样选项
 音频重采样支持下面一些选项。
 
 选项可以在ffmpeg工具集中采用`-option value`的形式进行设置，或者在`aresample`滤镜中以`option=value`形式设置，也可以通过`libavutil/opt.h`的API或明确设置在`SwrContext`选项中。
