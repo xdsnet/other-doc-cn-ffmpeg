@@ -1,4 +1,4 @@
-## 43 开发者 ##
+## 43 开发者
 是FFmpeg的开发者
 
 关于作者的详细信息，可以观看项目（[git://source.ffmpeg.org/ffmpeg](git://source.ffmpeg.org/ffmpeg)）的`Git`历史，或者项目中目录中使用命令`git log`了解，或者浏览在线的源码([http://source.ffmpeg.org](http://source.ffmpeg.org))
