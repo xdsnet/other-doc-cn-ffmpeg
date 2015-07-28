@@ -1,4 +1,4 @@
-## 20 格式选项 ##
+## 20 格式选项
 `libavformat`库提供一些常规的全局选项，它们都可被混合器/分离器设置。一些混合器/分离器还支持附加的私有选项，这些都在其组件处介绍。
 
 ffmpeg工具中选项通过特定的`-option value`进行设置，或者通过`AVFormatContext`选项设置，或者通过`libavutil/opt.h`中的API设置
