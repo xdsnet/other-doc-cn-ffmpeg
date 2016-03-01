@@ -1,4 +1,4 @@
-# ffmpeg 翻译文档 ([ffmpeg-all](http/ffmpeg.orffmpeg-all.html "ffmpeg-all") 包含重要组件） #
+# ffmpeg 翻译文档 (参考源文件[ffmpeg-all](http/ffmpeg-doc/ffmpeg-all.html "ffmpeg-all") 包含重要组件） #
 目录：
 - [1 命令语法](ffmpeg-doc-cn-01)
 - [2 描概览](ffmpeg-doc-cn-02)
