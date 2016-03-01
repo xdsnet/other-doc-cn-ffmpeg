@@ -28,9 +28,18 @@ body > #header a {
 	color: #efefef;
 }
 body > #header h1 {
-	line-height: 84px;
+	line-height: 44px;
 	margin: 0;
 	text-align: center;
+}
+body > #header h3 {
+	line-height: 24px;
+	margin: 0;
+  margin-top:20px;
+	text-align: center;
+}
+body > #header h3 a{
+  color:#ffff00;
 }
 body > #main {
 	padding: 15px 0;
